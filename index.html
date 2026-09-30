@@ -11,13 +11,24 @@
 
   <div class="max-w-md mx-auto p-4 pb-12 space-y-5">
     
-    <!-- Cabeçalho -->
+    <!-- Cabeçalho com botões de Backup e Restaurar -->
     <header class="flex justify-between items-center bg-white p-5 rounded-2xl shadow-sm">
       <div>
         <h1 class="text-xl font-bold text-slate-800">Meu Controle</h1>
         <p class="text-xs text-slate-500">Acompanhamento diário</p>
       </div>
-      <button onclick="limparTudo()" class="text-xs text-rose-500 hover:text-rose-700 underline">Limpar Dados</button>
+      <div class="flex items-center gap-1.5">
+        <button onclick="exportarCSV()" title="Exportar Backup em CSV" class="text-xs bg-emerald-50 text-emerald-600 hover:bg-emerald-100 px-2.5 py-1.5 rounded-lg font-medium transition">
+          📥 Backup
+        </button>
+        <label title="Importar Backup de CSV" class="text-xs bg-blue-50 text-blue-600 hover:bg-blue-100 px-2.5 py-1.5 rounded-lg font-medium cursor-pointer transition">
+          📤 Restaurar
+          <input type="file" id="arquivo-importar" accept=".csv" onchange="importarCSV(event)" class="hidden">
+        </label>
+        <button onclick="limparTudo()" title="Apagar todos os dados" class="text-xs text-rose-500 hover:text-rose-700 underline ml-1">
+          Limpar
+        </button>
+      </div>
     </header>
 
     <!-- Cards de Resumo -->
@@ -160,7 +171,7 @@
     }
 
     function limparTudo() {
-      if (confirm('Tem certeza que deseja apagar todos os registros?')) {
+      if (confirm('Tem certeza que deseja apagar todos os registros do telemóvel?')) {
         transacoes = [];
         salvarEAtualizar();
       }
@@ -181,7 +192,6 @@
       const listaTbody = document.getElementById('lista-transacoes');
       listaTbody.innerHTML = '';
 
-      // Ordenar por data (mais recente primeiro)
       const transacoesOrdenadas = [...transacoes].sort((a, b) => new Date(b.data) - new Date(a.data));
 
       transacoesOrdenadas.forEach(t => {
@@ -222,7 +232,6 @@
       const mesesNomes = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
       document.getElementById('mes-atual-label').textContent = `${mesesNomes[agora.getMonth()]} / ${agora.getFullYear()}`;
 
-      // Filtrar despesas do mês atual
       const despesasMes = transacoes.filter(t => t.tipo === 'Despesa' && t.data.startsWith(mesAtualStr));
       
       const totaisPorCat = {};
@@ -280,6 +289,65 @@
           plugins: { legend: { position: 'bottom' } }
         }
       });
+    }
+
+    // Exportação em formato CSV
+    function exportarCSV() {
+      if (transacoes.length === 0) {
+        alert('Não há dados cadastrados para exportar!');
+        return;
+      }
+      let csv = '\uFEFFDescrição;Valor;Tipo;Categoria;Data\n';
+      transacoes.forEach(t => {
+        const cat = t.categoria || '📦 Outros';
+        csv += `"${t.descricao}";${t.valor};"${t.tipo}";"${cat}";"${t.data}"\n`;
+      });
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `backup_financeiro_${new Date().toISOString().split('T')[0]}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    // Importação de ficheiro CSV
+    function importarCSV(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const linhas = e.target.result.split('\n');
+        let importados = 0;
+        for (let i = 1; i < linhas.length; i++) {
+          const linha = linhas[i].trim();
+          if (!linha) continue;
+          const cols = linha.split(';').map(c => c.replace(/^"|"$/g, ''));
+          if (cols.length >= 5) {
+            const [descricao, valorStr, tipo, categoria, data] = cols;
+            const valor = parseFloat(valorStr.replace(',', '.'));
+            if (descricao && !isNaN(valor) && tipo && data) {
+              transacoes.push({
+                id: Date.now() + Math.random(),
+                descricao,
+                valor,
+                tipo,
+                categoria,
+                data
+              });
+              importados++;
+            }
+          }
+        }
+        if (importados > 0) {
+          salvarEAtualizar();
+          alert(`${importados} lançamentos restaurados com sucesso!`);
+        } else {
+          alert('Ficheiro inválido ou sem dados compatíveis.');
+        }
+        event.target.value = '';
+      };
+      reader.readAsText(file);
     }
 
     // Inicialização
