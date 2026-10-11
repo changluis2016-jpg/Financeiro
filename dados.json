@@ -1,1 +1,26 @@
-[]
+[
+  {
+    "id": 1728648000000,
+    "descricao": "Ganho Uber Teste",
+    "valor": 150.50,
+    "tipo": "Receita",
+    "categoria": "🚗 Uber / Apps",
+    "data": "2026-10-10"
+  },
+  {
+    "id": 1728648000001,
+    "descricao": "Abastecimento Gol",
+    "valor": 80.00,
+    "tipo": "Despesa",
+    "categoria": "⛽ Combustível",
+    "data": "2026-10-11"
+  },
+  {
+    "id": 1728648000002,
+    "descricao": "Parcela do Carro",
+    "valor": 650.00,
+    "tipo": "Despesa",
+    "categoria": "💳 Assinaturas, dívidas, serviços",
+    "data": "2026-10-05"
+  }
+]
