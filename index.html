@@ -182,9 +182,9 @@
         </div>
       </section>
 
-      <!-- Gráfico em Tela Cheia -->
+      <!-- Gráfico em Tela Cheia com Cores por Categoria -->
       <section class="bg-slate-800 p-5 rounded-2xl shadow-lg border border-slate-700/50">
-        <h2 class="text-sm font-bold text-slate-200 mb-3">Distribuição Visual Geral</h2>
+        <h2 class="text-sm font-bold text-slate-200 mb-3">Distribuição por Categoria</h2>
         <canvas id="graficoFinanceiro"></canvas>
       </section>
     </main>
@@ -239,6 +239,12 @@
       Despesa: ['🛒 Alimentação', '⛽ Combustível', '🏠 Moradia', '🚗 Transporte', '🎉 Lazer', '💊 Saúde', '🔧 Manutenção Veículo', '💳 Assinaturas, dívidas, serviços', '📦 Outros'],
       Receita: ['💼 Salário', '🚗 Uber / Apps', '📈 Rendimentos', '🎁 Outros']
     };
+
+    // Paleta de cores vibrantes e distintas para as fatias de despesas
+    const coresDespesas = [
+      '#f43f5e', '#3b82f6', '#f59e0b', '#8b5cf6', 
+      '#ec4899', '#06b6d4', '#14b8a6', '#f97316', '#64748b'
+    ];
 
     let categoriasOpcoes = JSON.parse(localStorage.getItem(CHAVE_CATS)) || categoriasPadrao;
     let modoDetalhamento = 'Despesa'; 
@@ -416,7 +422,7 @@
       document.getElementById('estatistica-media').textContent = formatarMoeda(media);
 
       atualizarDetalhamentoMes();
-      atualizarGrafico(receitas, despesas);
+      atualizarGraficoMulticor();
     }
 
     function atualizarDetalhamentoMes() {
@@ -539,18 +545,62 @@
       document.getElementById('modal-semanal').classList.add('hidden');
     }
 
-    function atualizarGrafico(receitas, despesas) {
+    // --- GRÁFICO MULTICOR POR CATEGORIA ---
+    function atualizarGraficoMulticor() {
       const ctx = document.getElementById('graficoFinanceiro').getContext('2d');
       if (meuGrafico) meuGrafico.destroy();
+
+      const mesSelecionado = document.getElementById('filtro-mes').value || mesAtualDefault;
+      const transacoesMes = transacoes.filter(t => t.data.startsWith(mesSelecionado));
+
+      const dadosCategorias = {};
+      let totalReceitas = 0;
+
+      transacoesMes.forEach(t => {
+        if (t.tipo === 'Receita') {
+          totalReceitas += t.valor;
+        } else {
+          const cat = t.categoria || '📦 Outros';
+          dadosCategorias[cat] = (dadosCategorias[cat] || 0) + t.valor;
+        }
+      });
+
+      const labels = [];
+      const dataValues = [];
+      const backgroundColors = [];
+
+      // 🟢 1. Se houver receitas no mês, exibe sempre em VERDE
+      if (totalReceitas > 0) {
+        labels.push('🟢 Receitas');
+        dataValues.push(totalReceitas);
+        backgroundColors.push('#10b981'); // Verde
+      }
+
+      // 🎨 2. Adiciona cada categoria de despesa com uma cor diferente
+      let colorIndex = 0;
+      Object.entries(dadosCategorias).forEach(([cat, valor]) => {
+        labels.push(cat);
+        dataValues.push(valor);
+        backgroundColors.push(coresDespesas[colorIndex % coresDespesas.length]);
+        colorIndex++;
+      });
+
+      // Se não houver dados no mês, coloca um valor neutro
+      if (labels.length === 0) {
+        labels.push('Sem dados no mês');
+        dataValues.push(1);
+        backgroundColors.push('#334155');
+      }
 
       meuGrafico = new Chart(ctx, {
         type: 'doughnut',
         data: {
-          labels: ['Receitas', 'Despesas'],
+          labels: labels,
           datasets: [{
-            data: [receitas, despesas],
-            backgroundColor: ['#10b981', '#f43f5e'],
-            borderColor: '#1e293b'
+            data: dataValues,
+            backgroundColor: backgroundColors,
+            borderColor: '#1e293b',
+            borderWidth: 2
           }]
         },
         options: {
@@ -558,7 +608,11 @@
           plugins: { 
             legend: { 
               position: 'bottom',
-              labels: { color: '#cbd5e1' }
+              labels: { 
+                color: '#cbd5e1',
+                boxWidth: 12,
+                font: { size: 11 }
+              }
             } 
           }
         }
