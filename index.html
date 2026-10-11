@@ -422,6 +422,7 @@
     // --- INTEGRAÇÃO COM DADOS.JSON NO GITHUB ---
 
     function verificarEstadoNuvem() {
+      ghConfig = JSON.parse(localStorage.getItem('ghConfig')) || ghConfig;
       const statusEl = document.getElementById('status-nuvem');
       if (ghConfig.token) {
         statusEl.textContent = '☁️ Nuvem GitHub Ativa (Sincronizado)';
@@ -447,6 +448,7 @@
     }
 
     async function carregarDadosDoGitHub() {
+      ghConfig = JSON.parse(localStorage.getItem('ghConfig')) || ghConfig;
       if (!ghConfig.token) return;
       try {
         const url = `https://raw.githubusercontent.com/${ghConfig.owner}/${ghConfig.repo}/main/dados.json?t=${Date.now()}`;
@@ -465,6 +467,7 @@
     }
 
     async function salvarDadosNoGitHub() {
+      ghConfig = JSON.parse(localStorage.getItem('ghConfig')) || ghConfig;
       const token = (ghConfig && ghConfig.token ? ghConfig.token.trim() : '');
       if (!token) {
         alert('Atenção: Token da nuvem não configurado. As alterações só foram salvas no telemóvel.');
