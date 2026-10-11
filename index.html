@@ -21,7 +21,7 @@
       <div class="flex justify-between items-center">
         <div>
           <h1 class="text-xl font-bold text-slate-100">Meu Controle</h1>
-          <p id="status-nuvem" class="text-[10px] text-amber-400 font-medium">⚠️ Nuvem local (Configure a nuvem para salvar no GitHub)</p>
+          <p id="status-nuvem" class="text-[10px] text-amber-400 font-medium">⚠️ Nuvem local (A verificar nuvem...)</p>
         </div>
         <button onclick="abrirConfigNuvem()" class="text-xs bg-slate-700 hover:bg-slate-600 text-slate-200 px-2.5 py-1.5 rounded-lg font-medium transition border border-slate-600">
           ⚙️ Configurar Nuvem
@@ -166,14 +166,15 @@
       Receita: ['💼 Salário', '🚗 Uber / Apps', '📈 Rendimentos', '🎁 Outros']
     };
 
-    let modoDetalhamento = 'Despesa'; // Pode ser 'Despesa' ou 'Receita'
+    let modoDetalhamento = 'Despesa'; 
     let transacoes = JSON.parse(localStorage.getItem('transacoesFinanceiras')) || [];
     let meuGrafico = null;
 
-    let ghConfig = JSON.parse(localStorage.getItem('ghConfig')) || {
+    // Token embutido e atualizado diretamente
+    let ghConfig = {
       owner: 'changluis2016-jpg',
       repo: 'Financeiro',
-      token: ''
+      token: 'Ghp_Sh9XqQoO4d7RiQD1HDqUS1YOxLwvdf078uuj'
     };
 
     const hoje = new Date();
@@ -327,8 +328,6 @@
         });
     }
 
-    // --- LÓGICA DO DETALHAMENTO SEMANAL ---
-
     function abrirDetalhamentoSemanal(categoria, mesAno, tipoTransacao) {
       const modal = document.getElementById('modal-semanal');
       document.getElementById('modal-cat-nome').textContent = `${categoria} (${tipoTransacao}s)`;
@@ -339,7 +338,6 @@
 
       const itemsCat = transacoes.filter(t => t.tipo === tipoTransacao && t.categoria === categoria && t.data.startsWith(mesAno));
 
-      // Agrupar por semanas do mês
       const semanas = { 'Semana 1 (1-7)': [], 'Semana 2 (8-14)': [], 'Semana 3 (15-21)': [], 'Semana 4 (22-fim)': [] };
 
       itemsCat.forEach(t => {
@@ -428,7 +426,7 @@
         statusEl.textContent = '☁️ Nuvem GitHub Ativa (Sincronizado)';
         statusEl.className = 'text-[10px] text-emerald-400 font-semibold';
       } else {
-        statusEl.textContent = '⚠️ Modo Local (Configure a nuvem para salvar no GitHub)';
+        statusEl.textContent = '⚠️ Modo Local';
         statusEl.className = 'text-[10px] text-amber-400 font-medium';
       }
     }
@@ -441,7 +439,6 @@
 
       ghConfig.repo = repo.trim();
       ghConfig.token = token.trim();
-      localStorage.setItem('ghConfig', JSON.stringify(ghConfig));
       verificarEstadoNuvem();
       carregarDadosDoGitHub();
       alert('Configuração salva com sucesso!');
@@ -487,7 +484,7 @@
         };
         if (sha) bodyData.sha = sha;
 
-        await fetch(apiGetUrl, {
+        const resPut = await fetch(apiGetUrl, {
           method: 'PUT',
           headers: {
             'Authorization': `token ${ghConfig.token}`,
@@ -495,8 +492,13 @@
           },
           body: JSON.stringify(bodyData)
         });
+
+        if (!resPut.ok) {
+          const errData = await resPut.json();
+          console.error('Erro ao gravar no GitHub:', errData.message);
+        }
       } catch (err) {
-        console.error('Erro ao sincronizar:', err);
+        console.error('Erro de ligação ao tentar salvar:', err);
       }
     }
 
