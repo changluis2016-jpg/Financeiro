@@ -63,7 +63,10 @@
     <!-- Painel de Detalhamento com Seletor de Mês -->
     <section class="bg-slate-800 p-5 rounded-2xl shadow-lg border border-slate-700/50 space-y-3">
       <div class="flex justify-between items-center">
-        <h2 class="text-sm font-bold text-slate-200">📊 Detalhamento por Mês</h2>
+        <div>
+          <h2 class="text-sm font-bold text-slate-200">📊 Detalhamento por Mês</h2>
+          <p class="text-[10px] text-slate-400">Clique em uma categoria para ver detalhes semanais</p>
+        </div>
         <input type="month" id="filtro-mes" onchange="atualizarDetalhamentoMes()" class="text-xs bg-slate-900 text-slate-200 font-semibold px-2 py-1 rounded-lg border border-slate-700 focus:ring-2 focus:ring-blue-500 outline-none">
       </div>
       <div id="container-categorias" class="space-y-2 text-xs">
@@ -136,6 +139,25 @@
       </div>
     </section>
 
+  </div>
+
+  <!-- MODAL DE DETALHAMENTO SEMANAL POR CATEGORIA -->
+  <div id="modal-semanal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
+    <div class="bg-slate-800 border border-slate-700 rounded-2xl w-full max-w-md max-h-[85vh] flex flex-col shadow-2xl overflow-hidden">
+      <!-- Cabeçalho do Modal -->
+      <div class="p-4 border-b border-slate-700 flex justify-between items-center bg-slate-800/50">
+        <div>
+          <h3 id="modal-cat-nome" class="text-base font-bold text-slate-100">Categoria</h3>
+          <p id="modal-cat-mes" class="text-xs text-slate-400">Outubro de 2026</p>
+        </div>
+        <button onclick="fecharModalSemanal()" class="text-slate-400 hover:text-slate-100 text-xl font-bold bg-slate-700/50 w-8 h-8 rounded-full flex items-center justify-center">✕</button>
+      </div>
+
+      <!-- Conteúdo do Modal (Scrollável) -->
+      <div id="modal-cat-conteudo" class="p-4 overflow-y-auto space-y-4 text-xs">
+        <!-- Inserido dinamicamente via JS -->
+      </div>
+    </div>
   </div>
 
   <script>
@@ -279,7 +301,8 @@
           const pct = totalDespesasMes > 0 ? ((valor / totalDespesasMes) * 100).toFixed(0) : 0;
           
           const item = document.createElement('div');
-          item.className = "space-y-1";
+          item.className = "space-y-1 cursor-pointer bg-slate-900/40 p-2 rounded-xl hover:bg-slate-700/40 transition border border-slate-700/30";
+          item.onclick = () => abrirDetalhamentoSemanal(cat, mesSelecionado);
           item.innerHTML = `
             <div class="flex justify-between font-medium">
               <span class="text-slate-300">${cat}</span>
@@ -291,6 +314,74 @@
           `;
           container.appendChild(item);
         });
+    }
+
+    // --- LÓGICA DO DETALHAMENTO SEMANAL ---
+
+    function abrirDetalhamentoSemanal(categoria, mesAno) {
+      const modal = document.getElementById('modal-semanal');
+      document.getElementById('modal-cat-nome').textContent = categoria;
+      
+      const [ano, mes] = mesAno.split('-');
+      const nomeMes = new Date(ano, mes - 1).toLocaleString('pt-BR', { month: 'long', year: 'numeric' });
+      document.getElementById('modal-cat-mes').textContent = nomeMes.charAt(0).toUpperCase() + nomeMes.slice(1);
+
+      const itemsCat = transacoes.filter(t => t.tipo === 'Despesa' && t.categoria === categoria && t.data.startsWith(mesAno));
+
+      // Agrupar por semanas do mês
+      const semanas = { 'Semana 1 (1-7)': [], 'Semana 2 (8-14)': [], 'Semana 3 (15-21)': [], 'Semana 4 (22-fim)': [] };
+
+      itemsCat.forEach(t => {
+        const dia = parseInt(t.data.split('-')[2]);
+        if (dia <= 7) semanas['Semana 1 (1-7)'].push(t);
+        else if (dia <= 14) semanas['Semana 2 (8-14)'].push(t);
+        else if (dia <= 21) semanas['Semana 3 (15-21)'].push(t);
+        else semanas['Semana 4 (22-fim)'].push(t);
+      });
+
+      const container = document.getElementById('modal-cat-conteudo');
+      container.innerHTML = '';
+
+      let totalGeral = 0;
+
+      Object.entries(semanas).forEach(([nomeSemana, lista]) => {
+        const totalSemana = lista.reduce((acc, curr) => acc + curr.valor, 0);
+        totalGeral += totalSemana;
+
+        const blk = document.createElement('div');
+        blk.className = "bg-slate-900 p-3 rounded-xl border border-slate-700/60 space-y-2";
+
+        let htmlLista = '';
+        if (lista.length === 0) {
+          htmlLista = `<p class="text-[11px] text-slate-500 italic">Nenhum gasto nesta semana.</p>`;
+        } else {
+          lista.sort((a, b) => new Date(b.data) - new Date(a.data)).forEach(i => {
+            htmlLista += `
+              <div class="flex justify-between items-center text-[11px] border-b border-slate-800 py-1 last:border-0">
+                <span class="text-slate-300">${i.descricao} <span class="text-[9px] text-slate-500">(${i.data.split('-').reverse().join('/')})</span></span>
+                <span class="font-bold text-rose-400">${formatarMoeda(i.valor)}</span>
+              </div>
+            `;
+          });
+        }
+
+        blk.innerHTML = `
+          <div class="flex justify-between items-center border-b border-slate-700/50 pb-1">
+            <span class="font-bold text-slate-200 text-xs">${nomeSemana}</span>
+            <span class="font-bold text-rose-400 text-xs">${formatarMoeda(totalSemana)}</span>
+          </div>
+          <div class="space-y-1">
+            ${htmlLista}
+          </div>
+        `;
+        container.appendChild(blk);
+      });
+
+      modal.classList.remove('hidden');
+    }
+
+    function fecharModalSemanal() {
+      document.getElementById('modal-semanal').classList.add('hidden');
     }
 
     function atualizarGrafico(receitas, despesas) {
@@ -413,10 +504,11 @@
       });
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
       const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `backup_financeiro_${new Date().toISOString().split('T')[0]}.csv`;
-      a.click();
+      const a = document.getElementById('a');
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `backup_financeiro_${new Date().toISOString().split('T')[0]}.csv`;
+      link.click();
       URL.revokeObjectURL(url);
     }
 
