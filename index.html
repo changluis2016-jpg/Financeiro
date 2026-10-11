@@ -417,7 +417,7 @@
       });
     }
 
-    // --- INTEGRAÇÃO COM DADOS.JSON NO GITHUB (COM CORREÇÃO DE CORS) ---
+    // --- INTEGRAÇÃO COM DADOS.JSON NO GITHUB ---
 
     function verificarEstadoNuvem() {
       const statusEl = document.getElementById('status-nuvem');
@@ -475,7 +475,7 @@
           method: 'GET',
           mode: 'cors',
           headers: { 
-            'Authorization': `token ${ghConfig.token}`,
+            'Authorization': `Bearer ${ghConfig.token.trim()}`,
             'Accept': 'application/vnd.github.v3+json',
             'Cache-Control': 'no-cache'
           }
@@ -502,7 +502,7 @@
           method: 'PUT',
           mode: 'cors',
           headers: {
-            'Authorization': `token ${ghConfig.token}`,
+            'Authorization': `Bearer ${ghConfig.token.trim()}`,
             'Content-Type': 'application/json',
             'Accept': 'application/vnd.github.v3+json',
             'Cache-Control': 'no-cache'
