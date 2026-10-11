@@ -417,7 +417,7 @@
       });
     }
 
-    // --- INTEGRAÇÃO COM DADOS.JSON NO GITHUB (COM ALERTAS DE DIAGNÓSTICO) ---
+    // --- INTEGRAÇÃO COM DADOS.JSON NO GITHUB (COM ANTI-CACHE DE SHA) ---
 
     function verificarEstadoNuvem() {
       const statusEl = document.getElementById('status-nuvem');
@@ -448,7 +448,7 @@
       if (!ghConfig.token) return;
       try {
         const url = `https://raw.githubusercontent.com/${ghConfig.owner}/${ghConfig.repo}/main/dados.json?t=${Date.now()}`;
-        const res = await fetch(url);
+        const res = await fetch(url, { cache: 'no-store' });
         if (res.ok) {
           const dadosNuvem = await res.json();
           if (Array.isArray(dadosNuvem)) {
@@ -468,11 +468,15 @@
         return;
       }
       try {
-        const apiGetUrl = `https://api.github.com/repos/${ghConfig.owner}/${ghConfig.repo}/contents/dados.json`;
+        const apiGetUrl = `https://api.github.com/repos/${ghConfig.owner}/${ghConfig.repo}/contents/dados.json?t=${Date.now()}`;
         
+        // Obter o SHA mais recente sem cache
         let sha = '';
         const resGet = await fetch(apiGetUrl, {
-          headers: { 'Authorization': `token ${ghConfig.token}` }
+          headers: { 
+            'Authorization': `token ${ghConfig.token}`,
+            'Cache-Control': 'no-cache'
+          }
         });
 
         if (resGet.ok) {
@@ -480,7 +484,7 @@
           sha = fileData.sha;
         } else if (resGet.status !== 404) {
           const errJson = await resGet.json();
-          alert('Erro ao obter ficheiro do GitHub: ' + (errJson.message || resGet.status));
+          alert('Erro ao obter SHA do GitHub: ' + (errJson.message || resGet.status));
           return;
         }
 
@@ -492,11 +496,12 @@
         };
         if (sha) bodyData.sha = sha;
 
-        const resPut = await fetch(apiGetUrl, {
+        const resPut = await fetch(`https://api.github.com/repos/${ghConfig.owner}/${ghConfig.repo}/contents/dados.json`, {
           method: 'PUT',
           headers: {
             'Authorization': `token ${ghConfig.token}`,
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'Cache-Control': 'no-cache'
           },
           body: JSON.stringify(bodyData)
         });
