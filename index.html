@@ -1,39 +1,44 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" class="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Meu Controle Financeiro</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class'
+    }
+  </script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
-<body class="bg-slate-100 text-slate-800 min-h-screen">
+<body class="bg-slate-900 text-slate-100 min-h-screen">
 
   <div class="max-w-md mx-auto p-4 pb-12 space-y-5">
     
     <!-- Cabeçalho -->
-    <header class="bg-white p-5 rounded-2xl shadow-sm space-y-3">
+    <header class="bg-slate-800 p-5 rounded-2xl shadow-lg border border-slate-700/50 space-y-3">
       <div class="flex justify-between items-center">
         <div>
-          <h1 class="text-xl font-bold text-slate-800">Meu Controle</h1>
-          <p id="status-nuvem" class="text-[10px] text-amber-600 font-medium">⚠️ Nuvem local (Configure a nuvem para salvar no GitHub)</p>
+          <h1 class="text-xl font-bold text-slate-100">Meu Controle</h1>
+          <p id="status-nuvem" class="text-[10px] text-amber-400 font-medium">⚠️ Nuvem local (Configure a nuvem para salvar no GitHub)</p>
         </div>
-        <button onclick="abrirConfigNuvem()" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 px-2.5 py-1.5 rounded-lg font-medium transition">
+        <button onclick="abrirConfigNuvem()" class="text-xs bg-slate-700 hover:bg-slate-600 text-slate-200 px-2.5 py-1.5 rounded-lg font-medium transition border border-slate-600">
           ⚙️ Configurar Nuvem
         </button>
       </div>
 
-      <div class="flex items-center justify-between pt-2 border-t border-slate-100 text-xs">
+      <div class="flex items-center justify-between pt-2 border-t border-slate-700/60 text-xs">
         <div class="flex gap-1.5">
-          <button onclick="exportarCSV()" title="Exportar Backup" class="bg-emerald-50 text-emerald-600 hover:bg-emerald-100 px-2 py-1 rounded-md font-medium transition">
+          <button onclick="exportarCSV()" title="Exportar Backup" class="bg-emerald-950/60 text-emerald-400 hover:bg-emerald-900/80 border border-emerald-800/50 px-2 py-1 rounded-md font-medium transition">
             📥 Backup
           </button>
-          <label title="Restaurar CSV" class="bg-blue-50 text-blue-600 hover:bg-blue-100 px-2 py-1 rounded-md font-medium cursor-pointer transition">
+          <label title="Restaurar CSV" class="bg-blue-950/60 text-blue-400 hover:bg-blue-900/80 border border-blue-800/50 px-2 py-1 rounded-md font-medium cursor-pointer transition">
             📤 Restaurar
             <input type="file" id="arquivo-importar" accept=".csv" onchange="importarCSV(event)" class="hidden">
           </label>
         </div>
-        <button onclick="limparTudo()" class="text-rose-500 hover:text-rose-700 underline">
+        <button onclick="limparTudo()" class="text-rose-400 hover:text-rose-300 underline">
           Limpar Dados
         </button>
       </div>
@@ -41,25 +46,25 @@
 
     <!-- Cards de Resumo -->
     <div class="grid grid-cols-3 gap-2">
-      <div class="bg-white p-3 rounded-2xl shadow-sm border-l-4 border-emerald-500">
+      <div class="bg-slate-800 p-3 rounded-2xl shadow-lg border-l-4 border-emerald-500 border-y border-r border-slate-700/50">
         <p class="text-[10px] font-semibold text-slate-400 uppercase">Receitas</p>
-        <p id="total-receitas" class="text-sm font-bold text-emerald-600 mt-1">R$ 0,00</p>
+        <p id="total-receitas" class="text-sm font-bold text-emerald-400 mt-1">R$ 0,00</p>
       </div>
-      <div class="bg-white p-3 rounded-2xl shadow-sm border-l-4 border-rose-500">
+      <div class="bg-slate-800 p-3 rounded-2xl shadow-lg border-l-4 border-rose-500 border-y border-r border-slate-700/50">
         <p class="text-[10px] font-semibold text-slate-400 uppercase">Despesas</p>
-        <p id="total-despesas" class="text-sm font-bold text-rose-600 mt-1">R$ 0,00</p>
+        <p id="total-despesas" class="text-sm font-bold text-rose-400 mt-1">R$ 0,00</p>
       </div>
-      <div class="bg-white p-3 rounded-2xl shadow-sm border-l-4 border-blue-500">
+      <div class="bg-slate-800 p-3 rounded-2xl shadow-lg border-l-4 border-blue-500 border-y border-r border-slate-700/50">
         <p class="text-[10px] font-semibold text-slate-400 uppercase">Saldo</p>
-        <p id="saldo-total" class="text-sm font-bold text-blue-600 mt-1">R$ 0,00</p>
+        <p id="saldo-total" class="text-sm font-bold text-blue-400 mt-1">R$ 0,00</p>
       </div>
     </div>
 
     <!-- Painel de Detalhamento com Seletor de Mês -->
-    <section class="bg-white p-5 rounded-2xl shadow-sm space-y-3">
+    <section class="bg-slate-800 p-5 rounded-2xl shadow-lg border border-slate-700/50 space-y-3">
       <div class="flex justify-between items-center">
-        <h2 class="text-sm font-bold text-slate-700">📊 Detalhamento por Mês</h2>
-        <input type="month" id="filtro-mes" onchange="atualizarDetalhamentoMes()" class="text-xs bg-slate-100 text-slate-700 font-semibold px-2 py-1 rounded-lg border-0 focus:ring-2 focus:ring-blue-500 outline-none">
+        <h2 class="text-sm font-bold text-slate-200">📊 Detalhamento por Mês</h2>
+        <input type="month" id="filtro-mes" onchange="atualizarDetalhamentoMes()" class="text-xs bg-slate-900 text-slate-200 font-semibold px-2 py-1 rounded-lg border border-slate-700 focus:ring-2 focus:ring-blue-500 outline-none">
       </div>
       <div id="container-categorias" class="space-y-2 text-xs">
         <!-- Inserido dinamicamente -->
@@ -67,22 +72,22 @@
     </section>
 
     <!-- Formulário -->
-    <section class="bg-white p-5 rounded-2xl shadow-sm space-y-4">
-      <h2 class="text-sm font-bold text-slate-700">Nova Transação</h2>
+    <section class="bg-slate-800 p-5 rounded-2xl shadow-lg border border-slate-700/50 space-y-4">
+      <h2 class="text-sm font-bold text-slate-200">Nova Transação</h2>
       <form id="finance-form" onsubmit="adicionarTransacao(event)" class="space-y-3">
         <div>
-          <label class="block text-xs font-semibold text-slate-600 mb-1">Descrição</label>
-          <input type="text" id="descricao" placeholder="Ex: Ganhos Uber, Netflix, Mercado..." required class="w-full p-2.5 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <label class="block text-xs font-semibold text-slate-300 mb-1">Descrição</label>
+          <input type="text" id="descricao" placeholder="Ex: Ganhos Uber, Netflix, Mercado..." required class="w-full p-2.5 bg-slate-900 border border-slate-700 text-slate-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-slate-500">
         </div>
 
         <div class="grid grid-cols-2 gap-2">
           <div>
-            <label class="block text-xs font-semibold text-slate-600 mb-1">Valor (R$)</label>
-            <input type="number" id="valor" step="0.01" placeholder="0,00" required class="w-full p-2.5 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <label class="block text-xs font-semibold text-slate-300 mb-1">Valor (R$)</label>
+            <input type="number" id="valor" step="0.01" placeholder="0,00" required class="w-full p-2.5 bg-slate-900 border border-slate-700 text-slate-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-slate-500">
           </div>
           <div>
-            <label class="block text-xs font-semibold text-slate-600 mb-1">Tipo</label>
-            <select id="tipo" onchange="atualizarCategorias()" class="w-full p-2.5 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+            <label class="block text-xs font-semibold text-slate-300 mb-1">Tipo</label>
+            <select id="tipo" onchange="atualizarCategorias()" class="w-full p-2.5 bg-slate-900 border border-slate-700 text-slate-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
               <option value="Despesa">Despesa (-)</option>
               <option value="Receita">Receita (+)</option>
             </select>
@@ -91,40 +96,40 @@
 
         <div class="grid grid-cols-2 gap-2">
           <div>
-            <label class="block text-xs font-semibold text-slate-600 mb-1">Categoria</label>
-            <select id="categoria" class="w-full p-2.5 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+            <label class="block text-xs font-semibold text-slate-300 mb-1">Categoria</label>
+            <select id="categoria" class="w-full p-2.5 bg-slate-900 border border-slate-700 text-slate-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
               <!-- Opções carregadas via JS -->
             </select>
           </div>
           <div>
-            <label class="block text-xs font-semibold text-slate-600 mb-1">Data</label>
-            <input type="date" id="data" required class="w-full p-2.5 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <label class="block text-xs font-semibold text-slate-300 mb-1">Data</label>
+            <input type="date" id="data" required class="w-full p-2.5 bg-slate-900 border border-slate-700 text-slate-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
           </div>
         </div>
 
-        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium p-3 rounded-xl text-sm transition">Adicionar Transação</button>
+        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-medium p-3 rounded-xl text-sm transition shadow-lg shadow-blue-600/30">Adicionar Transação</button>
       </form>
     </section>
 
     <!-- Gráfico -->
-    <section class="bg-white p-5 rounded-2xl shadow-sm">
-      <h2 class="text-sm font-bold text-slate-700 mb-3">Resumo Visual Geral</h2>
+    <section class="bg-slate-800 p-5 rounded-2xl shadow-lg border border-slate-700/50">
+      <h2 class="text-sm font-bold text-slate-200 mb-3">Resumo Visual Geral</h2>
       <canvas id="graficoFinanceiro"></canvas>
     </section>
 
     <!-- Lista de Histórico -->
-    <section class="bg-white p-5 rounded-2xl shadow-sm space-y-3">
-      <h2 class="text-sm font-bold text-slate-700">Histórico de Lançamentos</h2>
+    <section class="bg-slate-800 p-5 rounded-2xl shadow-lg border border-slate-700/50 space-y-3">
+      <h2 class="text-sm font-bold text-slate-200">Histórico de Lançamentos</h2>
       <div class="overflow-x-auto">
         <table class="w-full text-left text-xs">
           <thead>
-            <tr class="border-b text-slate-400 uppercase">
+            <tr class="border-b border-slate-700 text-slate-400 uppercase">
               <th class="py-2">Item</th>
               <th class="py-2">Valor</th>
               <th class="py-2 text-right">Ação</th>
             </tr>
           </thead>
-          <tbody id="lista-transacoes" class="divide-y">
+          <tbody id="lista-transacoes" class="divide-y divide-slate-700/50">
             <!-- Itens inseridos via JS -->
           </tbody>
         </table>
@@ -142,7 +147,6 @@
     let transacoes = JSON.parse(localStorage.getItem('transacoesFinanceiras')) || [];
     let meuGrafico = null;
 
-    // Configurações do GitHub atualizadas com o seu utilizador correto
     let ghConfig = JSON.parse(localStorage.getItem('ghConfig')) || {
       owner: 'changluis2016-jpg',
       repo: 'Financeiro',
@@ -224,17 +228,17 @@
         const cat = t.categoria || '📦 Outros';
 
         const tr = document.createElement('tr');
-        tr.className = "hover:bg-slate-50";
+        tr.className = "hover:bg-slate-700/30";
         tr.innerHTML = `
           <td class="py-2.5">
-            <div class="font-semibold text-slate-700">${t.descricao}</div>
+            <div class="font-semibold text-slate-200">${t.descricao}</div>
             <div class="text-[10px] text-slate-400">${cat} • ${t.data.split('-').reverse().join('/')}</div>
           </td>
-          <td class="py-2.5 font-bold ${t.tipo === 'Receita' ? 'text-emerald-600' : 'text-rose-600'}">
+          <td class="py-2.5 font-bold ${t.tipo === 'Receita' ? 'text-emerald-400' : 'text-rose-400'}">
             ${t.tipo === 'Receita' ? '+' : '-'} ${formatarMoeda(t.valor)}
           </td>
           <td class="py-2.5 text-right">
-            <button onclick="removerTransacao(${t.id})" class="text-slate-400 hover:text-rose-500 font-bold px-1">✕</button>
+            <button onclick="removerTransacao(${t.id})" class="text-slate-500 hover:text-rose-400 font-bold px-1">✕</button>
           </td>
         `;
         listaTbody.appendChild(tr);
@@ -278,10 +282,10 @@
           item.className = "space-y-1";
           item.innerHTML = `
             <div class="flex justify-between font-medium">
-              <span class="text-slate-700">${cat}</span>
-              <span class="font-bold text-slate-800">${formatarMoeda(valor)} <span class="text-[10px] text-slate-400 font-normal">(${pct}%)</span></span>
+              <span class="text-slate-300">${cat}</span>
+              <span class="font-bold text-slate-200">${formatarMoeda(valor)} <span class="text-[10px] text-slate-400 font-normal">(${pct}%)</span></span>
             </div>
-            <div class="w-full bg-slate-100 rounded-full h-1.5">
+            <div class="w-full bg-slate-900 rounded-full h-1.5">
               <div class="bg-rose-500 h-1.5 rounded-full" style="width: ${pct}%"></div>
             </div>
           `;
@@ -299,12 +303,18 @@
           labels: ['Receitas', 'Despesas'],
           datasets: [{
             data: [receitas, despesas],
-            backgroundColor: ['#10b981', '#f43f5e']
+            backgroundColor: ['#10b981', '#f43f5e'],
+            borderColor: '#1e293b'
           }]
         },
         options: {
           responsive: true,
-          plugins: { legend: { position: 'bottom' } }
+          plugins: { 
+            legend: { 
+              position: 'bottom',
+              labels: { color: '#cbd5e1' }
+            } 
+          }
         }
       });
     }
@@ -315,10 +325,10 @@
       const statusEl = document.getElementById('status-nuvem');
       if (ghConfig.token) {
         statusEl.textContent = '☁️ Nuvem GitHub Ativa (Sincronizado)';
-        statusEl.className = 'text-[10px] text-emerald-600 font-semibold';
+        statusEl.className = 'text-[10px] text-emerald-400 font-semibold';
       } else {
         statusEl.textContent = '⚠️ Modo Local (Configure a nuvem para salvar no GitHub)';
-        statusEl.className = 'text-[10px] text-amber-600 font-medium';
+        statusEl.className = 'text-[10px] text-amber-400 font-medium';
       }
     }
 
@@ -350,7 +360,7 @@
           }
         }
       } catch (err) {
-        console.log('Usando dados locais (offline ou dados.json ainda não criado).');
+        console.log('Usando dados locais.');
       }
     }
 
@@ -385,7 +395,7 @@
           body: JSON.stringify(bodyData)
         });
       } catch (err) {
-        console.error('Erro ao sincronizar com o GitHub:', err);
+        console.error('Erro ao sincronizar:', err);
       }
     }
 
