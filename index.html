@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Meu Controle Financeiro</title>
+  <title>Meu Controle Financeiro - Blindado</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
@@ -21,11 +21,8 @@
       <div class="flex justify-between items-center">
         <div>
           <h1 class="text-xl font-bold text-slate-100">Meu Controle</h1>
-          <p id="status-nuvem" class="text-[10px] text-amber-400 font-medium">⚠️ Nuvem local (Configure a nuvem)</p>
+          <p class="text-[10px] text-emerald-400 font-medium">🛡️ Armazenamento Blindado e Isolado</p>
         </div>
-        <button onclick="abrirConfigNuvem()" class="text-xs bg-slate-700 hover:bg-slate-600 text-slate-200 px-2.5 py-1.5 rounded-lg font-medium transition border border-slate-600">
-          ⚙️ Configurar Nuvem
-        </button>
       </div>
 
       <div class="flex items-center justify-between pt-2 border-t border-slate-700/60 text-xs">
@@ -46,11 +43,11 @@
 
     <!-- Cards de Resumo Clicáveis -->
     <div class="grid grid-cols-3 gap-2">
-      <div id="card-receitas" onclick="mudarModoDetalhamento('Receita')" class="bg-slate-800 p-3 rounded-2xl shadow-lg border-l-4 border-emerald-500 border-y border-r border-slate-700/50 cursor-pointer">
+      <div id="card-receitas" onclick="mudarModoDetalhamento('Receita')" class="bg-slate-800 p-3 rounded-2xl shadow-lg border-l-4 border-emerald-500 border-y border-r border-slate-700/50 cursor-pointer hover:bg-slate-700/40 transition">
         <p class="text-[10px] font-semibold text-slate-400 uppercase">Receitas 🟢</p>
         <p id="total-receitas" class="text-sm font-bold text-emerald-400 mt-1">R$ 0,00</p>
       </div>
-      <div id="card-despesas" onclick="mudarModoDetalhamento('Despesa')" class="bg-slate-800 p-3 rounded-2xl shadow-lg border-l-4 border-rose-500 border-y border-r border-slate-700/50 cursor-pointer">
+      <div id="card-despesas" onclick="mudarModoDetalhamento('Despesa')" class="bg-slate-800 p-3 rounded-2xl shadow-lg border-l-4 border-rose-500 border-y border-r border-slate-700/50 cursor-pointer hover:bg-slate-700/40 transition">
         <p class="text-[10px] font-semibold text-slate-400 uppercase">Despesas 🔴</p>
         <p id="total-despesas" class="text-sm font-bold text-rose-400 mt-1">R$ 0,00</p>
       </div>
@@ -67,7 +64,7 @@
           <h2 id="titulo-detalhamento" class="text-sm font-bold text-slate-200">📊 Detalhamento de Despesas</h2>
           <p class="text-[10px] text-slate-400">Clique em uma categoria para ver detalhes semanais</p>
         </div>
-        <input type="month" id="filtro-mes" onchange="atualizarDetalhamentoMes()" class="text-xs bg-slate-900 text-slate-200 font-semibold px-2 py-1 rounded-lg border border-slate-700 focus:ring-2 focus:ring-blue-500">
+        <input type="month" id="filtro-mes" onchange="atualizarDetalhamentoMes()" class="text-xs bg-slate-900 text-slate-200 font-semibold px-2 py-1 rounded-lg border border-slate-700 focus:ring-2 focus:ring-blue-500 outline-none">
       </div>
       <div id="container-categorias" class="space-y-2 text-xs">
         <!-- Inserido dinamicamente -->
@@ -80,13 +77,13 @@
       <form id="finance-form" onsubmit="adicionarTransacao(event)" class="space-y-3">
         <div>
           <label class="block text-xs font-semibold text-slate-300 mb-1">Descrição</label>
-          <input type="text" id="descricao" placeholder="Ex: Ganhos Uber, Netflix, Mercado..." required class="w-full p-2.5 bg-slate-900 border border-slate-700 text-slate-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <input type="text" id="descricao" placeholder="Ex: Ganhos Uber, Netflix, Mercado..." required class="w-full p-2.5 bg-slate-900 border border-slate-700 text-slate-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-slate-500">
         </div>
 
         <div class="grid grid-cols-2 gap-2">
           <div>
             <label class="block text-xs font-semibold text-slate-300 mb-1">Valor (R$)</label>
-            <input type="number" id="valor" step="0.01" placeholder="0,00" required class="w-full p-2.5 bg-slate-900 border border-slate-700 text-slate-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <input type="number" id="valor" step="0.01" placeholder="0,00" required class="w-full p-2.5 bg-slate-900 border border-slate-700 text-slate-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-slate-500">
           </div>
           <div>
             <label class="block text-xs font-semibold text-slate-300 mb-1">Tipo</label>
@@ -161,20 +158,26 @@
   </div>
 
   <script>
+    // CHAVE EXCLUSIVA BLINDADA: Nunca colidirá com outros projetos no mesmo domínio
+    const CHAVE_STORAGE = 'financas_transacoes_exclusivo_changluis';
+
     const categoriasOpcoes = {
       Despesa: ['🛒 Alimentação', '⛽ Combustível', '🏠 Moradia', '🚗 Transporte', '🎉 Lazer', '💊 Saúde', '🔧 Manutenção Veículo', '💳 Assinaturas, dívidas, serviços', '📦 Outros'],
       Receita: ['💼 Salário', '🚗 Uber / Apps', '📈 Rendimentos', '🎁 Outros']
     };
 
-    let modoDetalhamento = 'Despesa';
-    let transacoes = JSON.parse(localStorage.getItem('transacoesFinanceiras')) || [];
-    let meuGrafico = null;
+    let modoDetalhamento = 'Despesa'; 
+    let transacoes = [];
 
-    let ghConfig = JSON.parse(localStorage.getItem('ghConfig')) || {
-      owner: 'changluis2016-jpg',
-      repo: 'Financeiro',
-      token: ''
-    };
+    // REDE DE SEGURANÇA: Tenta ler a chave exclusiva; se não existir, tenta migrar da antiga chave genérica
+    if (localStorage.getItem(CHAVE_STORAGE)) {
+      transacoes = JSON.parse(localStorage.getItem(CHAVE_STORAGE)) || [];
+    } else if (localStorage.getItem('transacoesFinanceiras')) {
+      transacoes = JSON.parse(localStorage.getItem('transacoesFinanceiras')) || [];
+      localStorage.setItem(CHAVE_STORAGE, JSON.stringify(transacoes));
+    }
+
+    let meuGrafico = null;
 
     const hoje = new Date();
     document.getElementById('data').valueAsDate = hoje;
@@ -183,8 +186,7 @@
 
     // Inicialização
     atualizarCategorias();
-    verificarEstadoNuvem();
-    carregarDadosDoGitHub();
+    atualizarInterface();
 
     function mudarModoDetalhamento(tipo) {
       modoDetalhamento = tipo;
@@ -195,7 +197,7 @@
       const tipo = document.getElementById('tipo').value;
       const selectCategoria = document.getElementById('categoria');
       selectCategoria.innerHTML = '';
-
+      
       categoriasOpcoes[tipo].forEach(cat => {
         const option = document.createElement('option');
         option.value = cat;
@@ -215,7 +217,7 @@
       if (!descricao || !data || isNaN(valor)) return;
 
       transacoes.push({ id: Date.now(), descricao, valor, tipo, categoria, data });
-      salvarESincronizar();
+      salvarLocal();
 
       document.getElementById('descricao').value = '';
       document.getElementById('valor').value = '';
@@ -223,20 +225,19 @@
 
     function removerTransacao(id) {
       transacoes = transacoes.filter(t => t.id !== id);
-      salvarESincronizar();
+      salvarLocal();
     }
 
     function limparTudo() {
-      if (confirm('Tem certeza que deseja apagar todos os registros?')) {
+      if (confirm('Tem certeza que deseja apagar todos os registros do seu telemóvel?')) {
         transacoes = [];
-        salvarESincronizar();
+        salvarLocal();
       }
     }
 
-    function salvarESincronizar() {
-      localStorage.setItem('transacoesFinanceiras', JSON.stringify(transacoes));
+    function salvarLocal() {
+      localStorage.setItem(CHAVE_STORAGE, JSON.stringify(transacoes));
       atualizarInterface();
-      salvarDadosNoGitHub();
     }
 
     function formatarMoeda(val) {
@@ -258,7 +259,7 @@
         const cat = t.categoria || '📦 Outros';
 
         const tr = document.createElement('tr');
-        tr.className = 'hover:bg-slate-700/30';
+        tr.className = "hover:bg-slate-700/30";
         tr.innerHTML = `
           <td class="py-2.5">
             <div class="font-semibold text-slate-200">${t.descricao}</div>
@@ -285,7 +286,7 @@
     function atualizarDetalhamentoMes() {
       const mesSelecionado = document.getElementById('filtro-mes').value || mesAtualDefault;
       const transacoesFiltradas = transacoes.filter(t => t.tipo === modoDetalhamento && t.data.startsWith(mesSelecionado));
-
+      
       const tituloEl = document.getElementById('titulo-detalhamento');
       tituloEl.textContent = modoDetalhamento === 'Receita' ? '📊 Detalhamento de Receitas' : '📊 Detalhamento de Despesas';
 
@@ -312,9 +313,9 @@
         .sort((a, b) => b[1] - a[1])
         .forEach(([cat, valor]) => {
           const pct = totalGeralMes > 0 ? ((valor / totalGeralMes) * 100).toFixed(0) : 0;
-
+          
           const item = document.createElement('div');
-          item.className = 'space-y-1 cursor-pointer bg-slate-900/40 p-2 rounded-xl hover:bg-slate-700/40 transition border border-slate-700/30';
+          item.className = "space-y-1 cursor-pointer bg-slate-900/40 p-2 rounded-xl hover:bg-slate-700/40 transition border border-slate-700/30";
           item.onclick = () => abrirDetalhamentoSemanal(cat, mesSelecionado, modoDetalhamento);
           item.innerHTML = `
             <div class="flex justify-between font-medium">
@@ -332,7 +333,7 @@
     function abrirDetalhamentoSemanal(categoria, mesAno, tipoTransacao) {
       const modal = document.getElementById('modal-semanal');
       document.getElementById('modal-cat-nome').textContent = `${categoria} (${tipoTransacao}s)`;
-
+      
       const [ano, mes] = mesAno.split('-');
       const nomeMes = new Date(ano, mes - 1).toLocaleString('pt-BR', { month: 'long', year: 'numeric' });
       document.getElementById('modal-cat-mes').textContent = nomeMes.charAt(0).toUpperCase() + nomeMes.slice(1);
@@ -358,11 +359,11 @@
         const totalSemana = lista.reduce((acc, curr) => acc + curr.valor, 0);
 
         const blk = document.createElement('div');
-        blk.className = 'bg-slate-900 p-3 rounded-xl border border-slate-700/60 space-y-2';
+        blk.className = "bg-slate-900 p-3 rounded-xl border border-slate-700/60 space-y-2";
 
         let htmlLista = '';
         if (lista.length === 0) {
-          htmlLista = '<p class="text-[11px] text-slate-500 italic">Nenhum registro nesta semana.</p>';
+          htmlLista = `<p class="text-[11px] text-slate-500 italic">Nenhum registro nesta semana.</p>`;
         } else {
           lista.sort((a, b) => new Date(b.data) - new Date(a.data)).forEach(i => {
             htmlLista += `
@@ -409,121 +410,14 @@
         },
         options: {
           responsive: true,
-          plugins: {
-            legend: {
+          plugins: { 
+            legend: { 
               position: 'bottom',
               labels: { color: '#cbd5e1' }
-            }
+            } 
           }
         }
       });
-    }
-
-    // --- INTEGRAÇÃO COM DADOS.JSON NO GITHUB ---
-
-    function verificarEstadoNuvem() {
-      ghConfig = JSON.parse(localStorage.getItem('ghConfig')) || ghConfig;
-      const statusEl = document.getElementById('status-nuvem');
-      if (ghConfig.token) {
-        statusEl.textContent = '☁️ Nuvem GitHub Ativa (Sincronizado)';
-        statusEl.className = 'text-[10px] text-emerald-400 font-semibold';
-      } else {
-        statusEl.textContent = '⚠️ Modo Local (Clique em Configurar Nuvem)';
-        statusEl.className = 'text-[10px] text-amber-400 font-medium';
-      }
-    }
-
-    function abrirConfigNuvem() {
-      const repo = prompt('Nome do Repositório no GitHub:', ghConfig.repo);
-      if (repo === null) return;
-      const token = prompt('Insira o seu Personal Access Token (PAT) do GitHub (começa com ghp_):', ghConfig.token);
-      if (token === null) return;
-
-      ghConfig.repo = repo.trim();
-      ghConfig.token = token.trim();
-      localStorage.setItem('ghConfig', JSON.stringify(ghConfig));
-      verificarEstadoNuvem();
-      carregarDadosDoGitHub();
-      alert('Configuração salva com sucesso!');
-    }
-
-    async function carregarDadosDoGitHub() {
-      ghConfig = JSON.parse(localStorage.getItem('ghConfig')) || ghConfig;
-      if (!ghConfig.token) return;
-      try {
-        const url = `https://raw.githubusercontent.com/${ghConfig.owner}/${ghConfig.repo}/main/dados.json?t=${Date.now()}`;
-        const res = await fetch(url, { cache: 'no-store' });
-        if (res.ok) {
-          const dadosNuvem = await res.json();
-          if (Array.isArray(dadosNuvem)) {
-            transacoes = dadosNuvem;
-            localStorage.setItem('transacoesFinanceiras', JSON.stringify(transacoes));
-            atualizarInterface();
-          }
-        }
-      } catch (err) {
-        console.log('Usando dados locais.');
-      }
-    }
-
-    async function salvarDadosNoGitHub() {
-      ghConfig = JSON.parse(localStorage.getItem('ghConfig')) || ghConfig;
-      const token = (ghConfig && ghConfig.token ? ghConfig.token.trim() : '');
-      if (!token) {
-        alert('Atenção: Token da nuvem não configurado. As alterações só foram salvas no telemóvel.');
-        return;
-      }
-
-      try {
-        const apiGetUrl = `https://api.github.com/repos/${ghConfig.owner}/${ghConfig.repo}/contents/dados.json?t=${Date.now()}`;
-
-        let sha = '';
-        const resGet = await fetch(apiGetUrl, {
-          method: 'GET',
-          mode: 'cors',
-          headers: {
-            'Authorization': `token ${token}`,
-            'Accept': 'application/vnd.github.v3+json',
-            'Cache-Control': 'no-cache'
-          }
-        });
-
-        if (resGet.ok) {
-          const fileData = await resGet.json();
-          sha = fileData.sha;
-        } else if (resGet.status !== 404) {
-          const errJson = await resGet.json();
-          alert('Erro ao obter SHA do GitHub: ' + (errJson.message || resGet.status));
-          return;
-        }
-
-        const contentBase64 = btoa(unescape(encodeURIComponent(JSON.stringify(transacoes, null, 2))));
-        const bodyData = {
-          message: 'Atualização automática de dados financeiros',
-          content: contentBase64,
-          branch: 'main'
-        };
-        if (sha) bodyData.sha = sha;
-
-        const resPut = await fetch(`https://api.github.com/repos/${ghConfig.owner}/${ghConfig.repo}/contents/dados.json`, {
-          method: 'PUT',
-          mode: 'cors',
-          headers: {
-            'Authorization': `token ${token}`,
-            'Content-Type': 'application/json',
-            'Accept': 'application/vnd.github.v3+json',
-            'Cache-Control': 'no-cache'
-          },
-          body: JSON.stringify(bodyData)
-        });
-
-        if (!resPut.ok) {
-          const errData = await resPut.json();
-          alert('Erro ao gravar no GitHub (PUT): ' + (errData.message || resPut.status));
-        }
-      } catch (err) {
-        alert('Erro de conexão ao salvar na nuvem: ' + err.message);
-      }
     }
 
     // --- BACKUP E RESTAURAR CSV ---
@@ -534,6 +428,7 @@
         return;
       }
       let csv = '\uFEFFDescrição;Valor;Tipo;Categoria;Data\n';
+      transacoes.exportar = true; // placeholder
       transacoes.forEach(t => {
         const cat = t.categoria || '📦 Outros';
         csv += `"${t.descricao}";${t.valor};"${t.tipo}";"${cat}";"${t.data}"\n`;
@@ -575,7 +470,7 @@
           }
         }
         if (importados > 0) {
-          salvarESincronizar();
+          salvarLocal();
           alert(`${importados} lançamentos restaurados e salvos com sucesso!`);
         } else {
           alert('Ficheiro inválido.');
@@ -584,9 +479,6 @@
       };
       reader.readAsText(file);
     }
-
-    // Inicialização visual
-    atualizarInterface();
   </script>
 </body>
 </html>
