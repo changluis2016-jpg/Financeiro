@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Meu Controle Financeiro - Blindado</title>
+  <title>Meu Controle Financeiro - Avançado</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
@@ -21,7 +21,7 @@
       <div class="flex justify-between items-center">
         <div>
           <h1 class="text-xl font-bold text-slate-100">Meu Controle</h1>
-          <p class="text-[10px] text-emerald-400 font-medium">🛡️ Armazenamento Blindado e Isolado</p>
+          <p class="text-[10px] text-emerald-400 font-medium">🛡️ Blindado & Estatísticas Ativas</p>
         </div>
       </div>
 
@@ -56,6 +56,23 @@
         <p id="saldo-total" class="text-sm font-bold text-blue-400 mt-1">R$ 0,00</p>
       </div>
     </div>
+
+    <!-- Painel Estatístico / Insights do Mês -->
+    <section class="bg-slate-800 p-5 rounded-2xl shadow-lg border border-slate-700/50 space-y-3">
+      <h2 class="text-sm font-bold text-slate-200 flex items-center gap-1.5">
+        📈 Insights Estatísticos do Mês
+      </h2>
+      <div id="painel-estatisticas" class="grid grid-cols-2 gap-2 text-xs">
+        <div class="bg-slate-900/60 p-3 rounded-xl border border-slate-700/40">
+          <p class="text-[10px] text-slate-400 uppercase">Maior Gasto</p>
+          <p id="estatistica-maior" class="font-bold text-rose-400 mt-1">-</p>
+        </div>
+        <div class="bg-slate-900/60 p-3 rounded-xl border border-slate-700/40">
+          <p class="text-[10px] text-slate-400 uppercase">Menor Gasto</p>
+          <p id="estatistica-menor" class="font-bold text-emerald-400 mt-1">-</p>
+        </div>
+      </div>
+    </section>
 
     <!-- Painel de Detalhamento com Seletor de Mês -->
     <section class="bg-slate-800 p-5 rounded-2xl shadow-lg border border-slate-700/50 space-y-3">
@@ -96,7 +113,10 @@
 
         <div class="grid grid-cols-2 gap-2">
           <div>
-            <label class="block text-xs font-semibold text-slate-300 mb-1">Categoria</label>
+            <div class="flex justify-between items-center mb-1">
+              <label class="text-xs font-semibold text-slate-300">Categoria</label>
+              <button type="button" onclick="abrirModalCategoria()" class="text-[10px] text-blue-400 hover:underline">+ Nova</button>
+            </div>
             <select id="categoria" class="w-full p-2.5 bg-slate-900 border border-slate-700 text-slate-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
               <!-- Opções carregadas via JS -->
             </select>
@@ -157,19 +177,44 @@
     </div>
   </div>
 
-  <script>
-    // CHAVE EXCLUSIVA BLINDADA: Nunca colidirá com outros projetos no mesmo domínio
-    const CHAVE_STORAGE = 'financas_transacoes_exclusivo_changluis';
+  <!-- MODAL PARA ADICIONAR CATEGORIA -->
+  <div id="modal-categoria" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
+    <div class="bg-slate-800 border border-slate-700 rounded-2xl w-full max-w-xs p-5 space-y-4 shadow-2xl">
+      <h3 class="text-sm font-bold text-slate-100">Criar Nova Categoria</h3>
+      <div class="space-y-3 text-xs">
+        <div>
+          <label class="block text-slate-300 mb-1">Nome com Emoji</label>
+          <input type="text" id="nova-categoria-nome" placeholder="Ex: ✈️ Viagem" class="w-full p-2.5 bg-slate-900 border border-slate-700 text-slate-100 rounded-xl outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+        <div>
+          <label class="block text-slate-300 mb-1">Tipo</label>
+          <select id="nova-categoria-tipo" class="w-full p-2.5 bg-slate-900 border border-slate-700 text-slate-100 rounded-xl outline-none">
+            <option value="Despesa">Despesa (-)</option>
+            <option value="Receita">Receita (+)</option>
+          </select>
+        </div>
+      </div>
+      <div class="flex gap-2 pt-2">
+        <button onclick="salvarNovaCategoria()" class="flex-1 bg-blue-600 hover:bg-blue-500 text-white font-medium p-2.5 rounded-xl transition text-xs">Adicionar</button>
+        <button onclick="fecharModalCategoria()" class="bg-slate-700 hover:bg-slate-600 text-slate-300 px-3 py-2.5 rounded-xl transition text-xs">Cancelar</button>
+      </div>
+    </div>
+  </div>
 
-    const categoriasOpcoes = {
+  <script>
+    const CHAVE_STORAGE = 'financas_transacoes_exclusivo_changluis';
+    const CHAVE_CATS = 'financas_categorias_exclusivo_changluis';
+
+    const categoriasPadrao = {
       Despesa: ['🛒 Alimentação', '⛽ Combustível', '🏠 Moradia', '🚗 Transporte', '🎉 Lazer', '💊 Saúde', '🔧 Manutenção Veículo', '💳 Assinaturas, dívidas, serviços', '📦 Outros'],
       Receita: ['💼 Salário', '🚗 Uber / Apps', '📈 Rendimentos', '🎁 Outros']
     };
 
+    let categoriasOpcoes = JSON.parse(localStorage.getItem(CHAVE_CATS)) || categoriasPadrao;
+
     let modoDetalhamento = 'Despesa'; 
     let transacoes = [];
 
-    // REDE DE SEGURANÇA: Tenta ler a chave exclusiva; se não existir, tenta migrar da antiga chave genérica
     if (localStorage.getItem(CHAVE_STORAGE)) {
       transacoes = JSON.parse(localStorage.getItem(CHAVE_STORAGE)) || [];
     } else if (localStorage.getItem('transacoesFinanceiras')) {
@@ -198,12 +243,43 @@
       const selectCategoria = document.getElementById('categoria');
       selectCategoria.innerHTML = '';
       
-      categoriasOpcoes[tipo].forEach(cat => {
+      const lista = categoriasOpcoes[tipo] || [];
+      lista.forEach(cat => {
         const option = document.createElement('option');
         option.value = cat;
         option.textContent = cat;
         selectCategoria.appendChild(option);
       });
+    }
+
+    function abrirModalCategoria() {
+      document.getElementById('nova-categoria-nome').value = '';
+      document.getElementById('nova-categoria-tipo').value = document.getElementById('tipo').value;
+      document.getElementById('modal-categoria').classList.remove('hidden');
+    }
+
+    function fecharModalCategoria() {
+      document.getElementById('modal-categoria').classList.add('hidden');
+    }
+
+    function salvarNovaCategoria() {
+      const nome = document.getElementById('nova-categoria-nome').value.trim();
+      const tipo = document.getElementById('nova-categoria-tipo').value;
+
+      if (!nome) {
+        alert('Digite o nome da categoria!');
+        return;
+      }
+
+      if (!categoriasOpcoes[tipo].includes(nome)) {
+        categoriasOpcoes[tipo].push(nome);
+        localStorage.setItem(CHAVE_CATS, JSON.stringify(categoriasOpcoes));
+        document.getElementById('tipo').value = tipo;
+        atualizarCategorias();
+        document.getElementById('categoria').value = nome;
+      }
+
+      fecharModalCategoria();
     }
 
     function adicionarTransacao(e) {
@@ -299,6 +375,23 @@
         totalGeralMes += t.valor;
       });
 
+      // Calcular estatísticas (Menor e Maior gasto/receita do mês)
+      const entradasTotais = Object.entries(totaisPorCat);
+      const elMaior = document.getElementById('estatistica-maior');
+      const elMenor = document.getElementById('estatistica-menor');
+
+      if (entradasTotais.length > 0) {
+        entradasTotais.sort((a, b) => b[1] - a[1]);
+        const maior = entradasTotais[0];
+        const menor = entradasTotais[entradasTotais.length - 1];
+
+        elMaior.textContent = `${maior[0]}: ${formatarMoeda(maior[1])}`;
+        elMenor.textContent = `${menor[0]}: ${formatarMoeda(menor[1])}`;
+      } else {
+        elMaior.textContent = 'Nenhum registo';
+        elMenor.textContent = 'Nenhum registo';
+      }
+
       const container = document.getElementById('container-categorias');
       container.innerHTML = '';
 
@@ -309,25 +402,23 @@
 
       const corBarra = modoDetalhamento === 'Receita' ? 'bg-emerald-500' : 'bg-rose-500';
 
-      Object.entries(totaisPorCat)
-        .sort((a, b) => b[1] - a[1])
-        .forEach(([cat, valor]) => {
-          const pct = totalGeralMes > 0 ? ((valor / totalGeralMes) * 100).toFixed(0) : 0;
-          
-          const item = document.createElement('div');
-          item.className = "space-y-1 cursor-pointer bg-slate-900/40 p-2 rounded-xl hover:bg-slate-700/40 transition border border-slate-700/30";
-          item.onclick = () => abrirDetalhamentoSemanal(cat, mesSelecionado, modoDetalhamento);
-          item.innerHTML = `
-            <div class="flex justify-between font-medium">
-              <span class="text-slate-300">${cat}</span>
-              <span class="font-bold text-slate-200">${formatarMoeda(valor)} <span class="text-[10px] text-slate-400 font-normal">(${pct}%)</span></span>
-            </div>
-            <div class="w-full bg-slate-900 rounded-full h-1.5">
-              <div class="${corBarra} h-1.5 rounded-full" style="width: ${pct}%"></div>
-            </div>
-          `;
-          container.appendChild(item);
-        });
+      entradasTotais.forEach(([cat, valor]) => {
+        const pct = totalGeralMes > 0 ? ((valor / totalGeralMes) * 100).toFixed(0) : 0;
+        
+        const item = document.createElement('div');
+        item.className = "space-y-1 cursor-pointer bg-slate-900/40 p-2 rounded-xl hover:bg-slate-700/40 transition border border-slate-700/30";
+        item.onclick = () => abrirDetalhamentoSemanal(cat, mesSelecionado, modoDetalhamento);
+        item.innerHTML = `
+          <div class="flex justify-between font-medium">
+            <span class="text-slate-300">${cat}</span>
+            <span class="font-bold text-slate-200">${formatarMoeda(valor)} <span class="text-[10px] text-slate-400 font-normal">(${pct}%)</span></span>
+          </div>
+          <div class="w-full bg-slate-900 rounded-full h-1.5">
+            <div class="${corBarra} h-1.5 rounded-full" style="width: ${pct}%"></div>
+          </div>
+        `;
+        container.appendChild(item);
+      });
     }
 
     function abrirDetalhamentoSemanal(categoria, mesAno, tipoTransacao) {
@@ -428,7 +519,6 @@
         return;
       }
       let csv = '\uFEFFDescrição;Valor;Tipo;Categoria;Data\n';
-      transacoes.exportar = true; // placeholder
       transacoes.forEach(t => {
         const cat = t.categoria || '📦 Outros';
         csv += `"${t.descricao}";${t.valor};"${t.tipo}";"${cat}";"${t.data}"\n`;
