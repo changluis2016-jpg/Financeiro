@@ -417,7 +417,7 @@
       });
     }
 
-    // --- INTEGRAÇÃO COM DADOS.JSON NO GITHUB (COM ANTI-CACHE DE SHA) ---
+    // --- INTEGRAÇÃO COM DADOS.JSON NO GITHUB (COM CORREÇÃO DE CORS) ---
 
     function verificarEstadoNuvem() {
       const statusEl = document.getElementById('status-nuvem');
@@ -470,11 +470,13 @@
       try {
         const apiGetUrl = `https://api.github.com/repos/${ghConfig.owner}/${ghConfig.repo}/contents/dados.json?t=${Date.now()}`;
         
-        // Obter o SHA mais recente sem cache
         let sha = '';
         const resGet = await fetch(apiGetUrl, {
+          method: 'GET',
+          mode: 'cors',
           headers: { 
             'Authorization': `token ${ghConfig.token}`,
+            'Accept': 'application/vnd.github.v3+json',
             'Cache-Control': 'no-cache'
           }
         });
@@ -498,9 +500,11 @@
 
         const resPut = await fetch(`https://api.github.com/repos/${ghConfig.owner}/${ghConfig.repo}/contents/dados.json`, {
           method: 'PUT',
+          mode: 'cors',
           headers: {
             'Authorization': `token ${ghConfig.token}`,
             'Content-Type': 'application/json',
+            'Accept': 'application/vnd.github.v3+json',
             'Cache-Control': 'no-cache'
           },
           body: JSON.stringify(bodyData)
