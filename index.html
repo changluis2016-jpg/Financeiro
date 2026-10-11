@@ -44,14 +44,14 @@
       </div>
     </header>
 
-    <!-- Cards de Resumo -->
+    <!-- Cards de Resumo Clicáveis -->
     <div class="grid grid-cols-3 gap-2">
-      <div class="bg-slate-800 p-3 rounded-2xl shadow-lg border-l-4 border-emerald-500 border-y border-r border-slate-700/50">
-        <p class="text-[10px] font-semibold text-slate-400 uppercase">Receitas</p>
+      <div id="card-receitas" onclick="mudarModoDetalhamento('Receita')" class="bg-slate-800 p-3 rounded-2xl shadow-lg border-l-4 border-emerald-500 border-y border-r border-slate-700/50 cursor-pointer hover:bg-slate-700/40 transition">
+        <p class="text-[10px] font-semibold text-slate-400 uppercase">Receitas 🟢</p>
         <p id="total-receitas" class="text-sm font-bold text-emerald-400 mt-1">R$ 0,00</p>
       </div>
-      <div class="bg-slate-800 p-3 rounded-2xl shadow-lg border-l-4 border-rose-500 border-y border-r border-slate-700/50">
-        <p class="text-[10px] font-semibold text-slate-400 uppercase">Despesas</p>
+      <div id="card-despesas" onclick="mudarModoDetalhamento('Despesa')" class="bg-slate-800 p-3 rounded-2xl shadow-lg border-l-4 border-rose-500 border-y border-r border-slate-700/50 cursor-pointer hover:bg-slate-700/40 transition">
+        <p class="text-[10px] font-semibold text-slate-400 uppercase">Despesas 🔴</p>
         <p id="total-despesas" class="text-sm font-bold text-rose-400 mt-1">R$ 0,00</p>
       </div>
       <div class="bg-slate-800 p-3 rounded-2xl shadow-lg border-l-4 border-blue-500 border-y border-r border-slate-700/50">
@@ -64,7 +64,7 @@
     <section class="bg-slate-800 p-5 rounded-2xl shadow-lg border border-slate-700/50 space-y-3">
       <div class="flex justify-between items-center">
         <div>
-          <h2 class="text-sm font-bold text-slate-200">📊 Detalhamento por Mês</h2>
+          <h2 id="titulo-detalhamento" class="text-sm font-bold text-slate-200">📊 Detalhamento de Despesas</h2>
           <p class="text-[10px] text-slate-400">Clique em uma categoria para ver detalhes semanais</p>
         </div>
         <input type="month" id="filtro-mes" onchange="atualizarDetalhamentoMes()" class="text-xs bg-slate-900 text-slate-200 font-semibold px-2 py-1 rounded-lg border border-slate-700 focus:ring-2 focus:ring-blue-500 outline-none">
@@ -141,7 +141,7 @@
 
   </div>
 
-  <!-- MODAL DE DETALHAMENTO SEMANAL POR CATEGORIA -->
+  <!-- MODAL DE DETALHAMENTO SEMANAL -->
   <div id="modal-semanal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
     <div class="bg-slate-800 border border-slate-700 rounded-2xl w-full max-w-md max-h-[85vh] flex flex-col shadow-2xl overflow-hidden">
       <!-- Cabeçalho do Modal -->
@@ -166,6 +166,7 @@
       Receita: ['💼 Salário', '🚗 Uber / Apps', '📈 Rendimentos', '🎁 Outros']
     };
 
+    let modoDetalhamento = 'Despesa'; // Pode ser 'Despesa' ou 'Receita'
     let transacoes = JSON.parse(localStorage.getItem('transacoesFinanceiras')) || [];
     let meuGrafico = null;
 
@@ -184,6 +185,11 @@
     atualizarCategorias();
     verificarEstadoNuvem();
     carregarDadosDoGitHub();
+
+    function mudarModoDetalhamento(tipo) {
+      modoDetalhamento = tipo;
+      atualizarDetalhamentoMes();
+    }
 
     function atualizarCategorias() {
       const tipo = document.getElementById('tipo').value;
@@ -276,40 +282,45 @@
 
     function atualizarDetalhamentoMes() {
       const mesSelecionado = document.getElementById('filtro-mes').value || mesAtualDefault;
-      const despesasMes = transacoes.filter(t => t.tipo === 'Despesa' && t.data.startsWith(mesSelecionado));
+      const transacoesFiltradas = transacoes.filter(t => t.tipo === modoDetalhamento && t.data.startsWith(mesSelecionado));
       
-      const totaisPorCat = {};
-      let totalDespesasMes = 0;
+      const tituloEl = document.getElementById('titulo-detalhamento');
+      tituloEl.textContent = modoDetalhamento === 'Receita' ? '📊 Detalhamento de Receitas' : '📊 Detalhamento de Despesas';
 
-      despesasMes.forEach(t => {
+      const totaisPorCat = {};
+      let totalGeralMes = 0;
+
+      transacoesFiltradas.forEach(t => {
         const cat = t.categoria || '📦 Outros';
         totaisPorCat[cat] = (totaisPorCat[cat] || 0) + t.valor;
-        totalDespesasMes += t.valor;
+        totalGeralMes += t.valor;
       });
 
       const container = document.getElementById('container-categorias');
       container.innerHTML = '';
 
       if (Object.keys(totaisPorCat).length === 0) {
-        container.innerHTML = `<p class="text-slate-400 text-center py-2">Nenhuma despesa registrada neste mês.</p>`;
+        container.innerHTML = `<p class="text-slate-400 text-center py-2">Nenhuma ${modoDetalhamento.toLowerCase()} registrada neste mês.</p>`;
         return;
       }
+
+      const corBarra = modoDetalhamento === 'Receita' ? 'bg-emerald-500' : 'bg-rose-500';
 
       Object.entries(totaisPorCat)
         .sort((a, b) => b[1] - a[1])
         .forEach(([cat, valor]) => {
-          const pct = totalDespesasMes > 0 ? ((valor / totalDespesasMes) * 100).toFixed(0) : 0;
+          const pct = totalGeralMes > 0 ? ((valor / totalGeralMes) * 100).toFixed(0) : 0;
           
           const item = document.createElement('div');
           item.className = "space-y-1 cursor-pointer bg-slate-900/40 p-2 rounded-xl hover:bg-slate-700/40 transition border border-slate-700/30";
-          item.onclick = () => abrirDetalhamentoSemanal(cat, mesSelecionado);
+          item.onclick = () => abrirDetalhamentoSemanal(cat, mesSelecionado, modoDetalhamento);
           item.innerHTML = `
             <div class="flex justify-between font-medium">
               <span class="text-slate-300">${cat}</span>
               <span class="font-bold text-slate-200">${formatarMoeda(valor)} <span class="text-[10px] text-slate-400 font-normal">(${pct}%)</span></span>
             </div>
             <div class="w-full bg-slate-900 rounded-full h-1.5">
-              <div class="bg-rose-500 h-1.5 rounded-full" style="width: ${pct}%"></div>
+              <div class="${corBarra} h-1.5 rounded-full" style="width: ${pct}%"></div>
             </div>
           `;
           container.appendChild(item);
@@ -318,15 +329,15 @@
 
     // --- LÓGICA DO DETALHAMENTO SEMANAL ---
 
-    function abrirDetalhamentoSemanal(categoria, mesAno) {
+    function abrirDetalhamentoSemanal(categoria, mesAno, tipoTransacao) {
       const modal = document.getElementById('modal-semanal');
-      document.getElementById('modal-cat-nome').textContent = categoria;
+      document.getElementById('modal-cat-nome').textContent = `${categoria} (${tipoTransacao}s)`;
       
       const [ano, mes] = mesAno.split('-');
       const nomeMes = new Date(ano, mes - 1).toLocaleString('pt-BR', { month: 'long', year: 'numeric' });
       document.getElementById('modal-cat-mes').textContent = nomeMes.charAt(0).toUpperCase() + nomeMes.slice(1);
 
-      const itemsCat = transacoes.filter(t => t.tipo === 'Despesa' && t.categoria === categoria && t.data.startsWith(mesAno));
+      const itemsCat = transacoes.filter(t => t.tipo === tipoTransacao && t.categoria === categoria && t.data.startsWith(mesAno));
 
       // Agrupar por semanas do mês
       const semanas = { 'Semana 1 (1-7)': [], 'Semana 2 (8-14)': [], 'Semana 3 (15-21)': [], 'Semana 4 (22-fim)': [] };
@@ -342,24 +353,23 @@
       const container = document.getElementById('modal-cat-conteudo');
       container.innerHTML = '';
 
-      let totalGeral = 0;
+      const corTextoVal = tipoTransacao === 'Receita' ? 'text-emerald-400' : 'text-rose-400';
 
       Object.entries(semanas).forEach(([nomeSemana, lista]) => {
         const totalSemana = lista.reduce((acc, curr) => acc + curr.valor, 0);
-        totalGeral += totalSemana;
 
         const blk = document.createElement('div');
         blk.className = "bg-slate-900 p-3 rounded-xl border border-slate-700/60 space-y-2";
 
         let htmlLista = '';
         if (lista.length === 0) {
-          htmlLista = `<p class="text-[11px] text-slate-500 italic">Nenhum gasto nesta semana.</p>`;
+          htmlLista = `<p class="text-[11px] text-slate-500 italic">Nenhum registro nesta semana.</p>`;
         } else {
           lista.sort((a, b) => new Date(b.data) - new Date(a.data)).forEach(i => {
             htmlLista += `
               <div class="flex justify-between items-center text-[11px] border-b border-slate-800 py-1 last:border-0">
                 <span class="text-slate-300">${i.descricao} <span class="text-[9px] text-slate-500">(${i.data.split('-').reverse().join('/')})</span></span>
-                <span class="font-bold text-rose-400">${formatarMoeda(i.valor)}</span>
+                <span class="font-bold ${corTextoVal}">${formatarMoeda(i.valor)}</span>
               </div>
             `;
           });
@@ -368,7 +378,7 @@
         blk.innerHTML = `
           <div class="flex justify-between items-center border-b border-slate-700/50 pb-1">
             <span class="font-bold text-slate-200 text-xs">${nomeSemana}</span>
-            <span class="font-bold text-rose-400 text-xs">${formatarMoeda(totalSemana)}</span>
+            <span class="font-bold ${corTextoVal} text-xs">${formatarMoeda(totalSemana)}</span>
           </div>
           <div class="space-y-1">
             ${htmlLista}
@@ -504,7 +514,6 @@
       });
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
       const url = URL.createObjectURL(blob);
-      const a = document.getElementById('a');
       const link = document.createElement('a');
       link.href = url;
       link.download = `backup_financeiro_${new Date().toISOString().split('T')[0]}.csv`;
