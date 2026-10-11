@@ -46,11 +46,11 @@
 
     <!-- Cards de Resumo Clicáveis -->
     <div class="grid grid-cols-3 gap-2">
-      <div id="card-receitas" onclick="mudarModoDetalhamento('Receita')" class="bg-slate-800 p-3 rounded-2xl shadow-lg border-l-4 border-emerald-500 border-y border-r border-slate-700/50 cursor-pointer hover:bg-slate-700/40 transition">
+      <div id="card-receitas" onclick="mudarModoDetalhamento('Receita')" class="bg-slate-800 p-3 rounded-2xl shadow-lg border-l-4 border-emerald-500 border-y border-r border-slate-700/50 cursor-pointer">
         <p class="text-[10px] font-semibold text-slate-400 uppercase">Receitas 🟢</p>
         <p id="total-receitas" class="text-sm font-bold text-emerald-400 mt-1">R$ 0,00</p>
       </div>
-      <div id="card-despesas" onclick="mudarModoDetalhamento('Despesa')" class="bg-slate-800 p-3 rounded-2xl shadow-lg border-l-4 border-rose-500 border-y border-r border-slate-700/50 cursor-pointer hover:bg-slate-700/40 transition">
+      <div id="card-despesas" onclick="mudarModoDetalhamento('Despesa')" class="bg-slate-800 p-3 rounded-2xl shadow-lg border-l-4 border-rose-500 border-y border-r border-slate-700/50 cursor-pointer">
         <p class="text-[10px] font-semibold text-slate-400 uppercase">Despesas 🔴</p>
         <p id="total-despesas" class="text-sm font-bold text-rose-400 mt-1">R$ 0,00</p>
       </div>
@@ -67,7 +67,7 @@
           <h2 id="titulo-detalhamento" class="text-sm font-bold text-slate-200">📊 Detalhamento de Despesas</h2>
           <p class="text-[10px] text-slate-400">Clique em uma categoria para ver detalhes semanais</p>
         </div>
-        <input type="month" id="filtro-mes" onchange="atualizarDetalhamentoMes()" class="text-xs bg-slate-900 text-slate-200 font-semibold px-2 py-1 rounded-lg border border-slate-700 focus:ring-2 focus:ring-blue-500 outline-none">
+        <input type="month" id="filtro-mes" onchange="atualizarDetalhamentoMes()" class="text-xs bg-slate-900 text-slate-200 font-semibold px-2 py-1 rounded-lg border border-slate-700 focus:ring-2 focus:ring-blue-500">
       </div>
       <div id="container-categorias" class="space-y-2 text-xs">
         <!-- Inserido dinamicamente -->
@@ -80,13 +80,13 @@
       <form id="finance-form" onsubmit="adicionarTransacao(event)" class="space-y-3">
         <div>
           <label class="block text-xs font-semibold text-slate-300 mb-1">Descrição</label>
-          <input type="text" id="descricao" placeholder="Ex: Ganhos Uber, Netflix, Mercado..." required class="w-full p-2.5 bg-slate-900 border border-slate-700 text-slate-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-slate-500">
+          <input type="text" id="descricao" placeholder="Ex: Ganhos Uber, Netflix, Mercado..." required class="w-full p-2.5 bg-slate-900 border border-slate-700 text-slate-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
         </div>
 
         <div class="grid grid-cols-2 gap-2">
           <div>
             <label class="block text-xs font-semibold text-slate-300 mb-1">Valor (R$)</label>
-            <input type="number" id="valor" step="0.01" placeholder="0,00" required class="w-full p-2.5 bg-slate-900 border border-slate-700 text-slate-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-slate-500">
+            <input type="number" id="valor" step="0.01" placeholder="0,00" required class="w-full p-2.5 bg-slate-900 border border-slate-700 text-slate-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
           </div>
           <div>
             <label class="block text-xs font-semibold text-slate-300 mb-1">Tipo</label>
@@ -166,7 +166,7 @@
       Receita: ['💼 Salário', '🚗 Uber / Apps', '📈 Rendimentos', '🎁 Outros']
     };
 
-    let modoDetalhamento = 'Despesa'; 
+    let modoDetalhamento = 'Despesa';
     let transacoes = JSON.parse(localStorage.getItem('transacoesFinanceiras')) || [];
     let meuGrafico = null;
 
@@ -195,7 +195,7 @@
       const tipo = document.getElementById('tipo').value;
       const selectCategoria = document.getElementById('categoria');
       selectCategoria.innerHTML = '';
-      
+
       categoriasOpcoes[tipo].forEach(cat => {
         const option = document.createElement('option');
         option.value = cat;
@@ -211,6 +211,8 @@
       const tipo = document.getElementById('tipo').value;
       const categoria = document.getElementById('categoria').value;
       const data = document.getElementById('data').value;
+
+      if (!descricao || !data || isNaN(valor)) return;
 
       transacoes.push({ id: Date.now(), descricao, valor, tipo, categoria, data });
       salvarESincronizar();
@@ -256,7 +258,7 @@
         const cat = t.categoria || '📦 Outros';
 
         const tr = document.createElement('tr');
-        tr.className = "hover:bg-slate-700/30";
+        tr.className = 'hover:bg-slate-700/30';
         tr.innerHTML = `
           <td class="py-2.5">
             <div class="font-semibold text-slate-200">${t.descricao}</div>
@@ -283,7 +285,7 @@
     function atualizarDetalhamentoMes() {
       const mesSelecionado = document.getElementById('filtro-mes').value || mesAtualDefault;
       const transacoesFiltradas = transacoes.filter(t => t.tipo === modoDetalhamento && t.data.startsWith(mesSelecionado));
-      
+
       const tituloEl = document.getElementById('titulo-detalhamento');
       tituloEl.textContent = modoDetalhamento === 'Receita' ? '📊 Detalhamento de Receitas' : '📊 Detalhamento de Despesas';
 
@@ -310,9 +312,9 @@
         .sort((a, b) => b[1] - a[1])
         .forEach(([cat, valor]) => {
           const pct = totalGeralMes > 0 ? ((valor / totalGeralMes) * 100).toFixed(0) : 0;
-          
+
           const item = document.createElement('div');
-          item.className = "space-y-1 cursor-pointer bg-slate-900/40 p-2 rounded-xl hover:bg-slate-700/40 transition border border-slate-700/30";
+          item.className = 'space-y-1 cursor-pointer bg-slate-900/40 p-2 rounded-xl hover:bg-slate-700/40 transition border border-slate-700/30';
           item.onclick = () => abrirDetalhamentoSemanal(cat, mesSelecionado, modoDetalhamento);
           item.innerHTML = `
             <div class="flex justify-between font-medium">
@@ -330,7 +332,7 @@
     function abrirDetalhamentoSemanal(categoria, mesAno, tipoTransacao) {
       const modal = document.getElementById('modal-semanal');
       document.getElementById('modal-cat-nome').textContent = `${categoria} (${tipoTransacao}s)`;
-      
+
       const [ano, mes] = mesAno.split('-');
       const nomeMes = new Date(ano, mes - 1).toLocaleString('pt-BR', { month: 'long', year: 'numeric' });
       document.getElementById('modal-cat-mes').textContent = nomeMes.charAt(0).toUpperCase() + nomeMes.slice(1);
@@ -356,11 +358,11 @@
         const totalSemana = lista.reduce((acc, curr) => acc + curr.valor, 0);
 
         const blk = document.createElement('div');
-        blk.className = "bg-slate-900 p-3 rounded-xl border border-slate-700/60 space-y-2";
+        blk.className = 'bg-slate-900 p-3 rounded-xl border border-slate-700/60 space-y-2';
 
         let htmlLista = '';
         if (lista.length === 0) {
-          htmlLista = `<p class="text-[11px] text-slate-500 italic">Nenhum registro nesta semana.</p>`;
+          htmlLista = '<p class="text-[11px] text-slate-500 italic">Nenhum registro nesta semana.</p>';
         } else {
           lista.sort((a, b) => new Date(b.data) - new Date(a.data)).forEach(i => {
             htmlLista += `
@@ -407,11 +409,11 @@
         },
         options: {
           responsive: true,
-          plugins: { 
-            legend: { 
+          plugins: {
+            legend: {
               position: 'bottom',
               labels: { color: '#cbd5e1' }
-            } 
+            }
           }
         }
       });
@@ -463,19 +465,21 @@
     }
 
     async function salvarDadosNoGitHub() {
-      if (!ghConfig.token) {
+      const token = (ghConfig && ghConfig.token ? ghConfig.token.trim() : '');
+      if (!token) {
         alert('Atenção: Token da nuvem não configurado. As alterações só foram salvas no telemóvel.');
         return;
       }
+
       try {
         const apiGetUrl = `https://api.github.com/repos/${ghConfig.owner}/${ghConfig.repo}/contents/dados.json?t=${Date.now()}`;
-        
+
         let sha = '';
         const resGet = await fetch(apiGetUrl, {
           method: 'GET',
           mode: 'cors',
-          headers: { 
-            'Authorization': `Bearer ${ghConfig.token.trim()}`,
+          headers: {
+            'Authorization': `token ${token}`,
             'Accept': 'application/vnd.github.v3+json',
             'Cache-Control': 'no-cache'
           }
@@ -492,9 +496,9 @@
 
         const contentBase64 = btoa(unescape(encodeURIComponent(JSON.stringify(transacoes, null, 2))));
         const bodyData = {
-          message: "Atualização automática de dados financeiros",
+          message: 'Atualização automática de dados financeiros',
           content: contentBase64,
-          branch: "main"
+          branch: 'main'
         };
         if (sha) bodyData.sha = sha;
 
@@ -502,7 +506,7 @@
           method: 'PUT',
           mode: 'cors',
           headers: {
-            'Authorization': `Bearer ${ghConfig.token.trim()}`,
+            'Authorization': `token ${token}`,
             'Content-Type': 'application/json',
             'Accept': 'application/vnd.github.v3+json',
             'Cache-Control': 'no-cache'
