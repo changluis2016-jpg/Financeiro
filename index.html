@@ -21,7 +21,7 @@
       <div class="flex justify-between items-center">
         <div>
           <h1 class="text-xl font-bold text-slate-100">Meu Controle</h1>
-          <p id="status-nuvem" class="text-[10px] text-amber-400 font-medium">⚠️ Nuvem local (A verificar nuvem...)</p>
+          <p id="status-nuvem" class="text-[10px] text-amber-400 font-medium">⚠️ Nuvem local (Configure a nuvem)</p>
         </div>
         <button onclick="abrirConfigNuvem()" class="text-xs bg-slate-700 hover:bg-slate-600 text-slate-200 px-2.5 py-1.5 rounded-lg font-medium transition border border-slate-600">
           ⚙️ Configurar Nuvem
@@ -170,11 +170,10 @@
     let transacoes = JSON.parse(localStorage.getItem('transacoesFinanceiras')) || [];
     let meuGrafico = null;
 
-    // Token embutido e atualizado diretamente
-    let ghConfig = {
+    let ghConfig = JSON.parse(localStorage.getItem('ghConfig')) || {
       owner: 'changluis2016-jpg',
       repo: 'Financeiro',
-      token: 'Ghp_Sh9XqQoO4d7RiQD1HDqUS1YOxLwvdf078uuj'
+      token: ''
     };
 
     const hoje = new Date();
@@ -418,7 +417,7 @@
       });
     }
 
-    // --- INTEGRAÇÃO COM DADOS.JSON NO GITHUB ---
+    // --- INTEGRAÇÃO COM DADOS.JSON NO GITHUB (COM ALERTAS DE DIAGNÓSTICO) ---
 
     function verificarEstadoNuvem() {
       const statusEl = document.getElementById('status-nuvem');
@@ -426,7 +425,7 @@
         statusEl.textContent = '☁️ Nuvem GitHub Ativa (Sincronizado)';
         statusEl.className = 'text-[10px] text-emerald-400 font-semibold';
       } else {
-        statusEl.textContent = '⚠️ Modo Local';
+        statusEl.textContent = '⚠️ Modo Local (Clique em Configurar Nuvem)';
         statusEl.className = 'text-[10px] text-amber-400 font-medium';
       }
     }
@@ -434,11 +433,12 @@
     function abrirConfigNuvem() {
       const repo = prompt('Nome do Repositório no GitHub:', ghConfig.repo);
       if (repo === null) return;
-      const token = prompt('Insira o seu Personal Access Token (PAT) do GitHub:', ghConfig.token);
+      const token = prompt('Insira o seu Personal Access Token (PAT) do GitHub (começa com ghp_):', ghConfig.token);
       if (token === null) return;
 
       ghConfig.repo = repo.trim();
       ghConfig.token = token.trim();
+      localStorage.setItem('ghConfig', JSON.stringify(ghConfig));
       verificarEstadoNuvem();
       carregarDadosDoGitHub();
       alert('Configuração salva com sucesso!');
@@ -451,7 +451,7 @@
         const res = await fetch(url);
         if (res.ok) {
           const dadosNuvem = await res.json();
-          if (Array.isArray(dadosNuvem) && dadosNuvem.length > 0) {
+          if (Array.isArray(dadosNuvem)) {
             transacoes = dadosNuvem;
             localStorage.setItem('transacoesFinanceiras', JSON.stringify(transacoes));
             atualizarInterface();
@@ -463,7 +463,10 @@
     }
 
     async function salvarDadosNoGitHub() {
-      if (!ghConfig.token) return;
+      if (!ghConfig.token) {
+        alert('Atenção: Token da nuvem não configurado. As alterações só foram salvas no telemóvel.');
+        return;
+      }
       try {
         const apiGetUrl = `https://api.github.com/repos/${ghConfig.owner}/${ghConfig.repo}/contents/dados.json`;
         
@@ -471,9 +474,14 @@
         const resGet = await fetch(apiGetUrl, {
           headers: { 'Authorization': `token ${ghConfig.token}` }
         });
+
         if (resGet.ok) {
           const fileData = await resGet.json();
           sha = fileData.sha;
+        } else if (resGet.status !== 404) {
+          const errJson = await resGet.json();
+          alert('Erro ao obter ficheiro do GitHub: ' + (errJson.message || resGet.status));
+          return;
         }
 
         const contentBase64 = btoa(unescape(encodeURIComponent(JSON.stringify(transacoes, null, 2))));
@@ -495,10 +503,10 @@
 
         if (!resPut.ok) {
           const errData = await resPut.json();
-          console.error('Erro ao gravar no GitHub:', errData.message);
+          alert('Erro ao gravar no GitHub (PUT): ' + (errData.message || resPut.status));
         }
       } catch (err) {
-        console.error('Erro de ligação ao tentar salvar:', err);
+        alert('Erro de conexão ao salvar na nuvem: ' + err.message);
       }
     }
 
