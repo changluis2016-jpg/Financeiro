@@ -138,7 +138,7 @@
         <div class="flex justify-between items-center">
           <div>
             <h2 id="titulo-detalhamento" class="text-sm font-bold text-slate-200">📊 Detalhamento de Despesas</h2>
-            <p class="text-[10px] text-slate-400">Clique na categoria para ver os itens por semana</p>
+            <p class="text-[10px] text-slate-400">Clique na categoria para ver os itens por semana (Seg - Dom)</p>
           </div>
           <input type="month" id="filtro-mes" onchange="atualizarDetalhamentoMes()" class="text-xs bg-slate-900 text-slate-200 font-semibold px-2 py-1 rounded-lg border border-slate-700 focus:ring-2 focus:ring-blue-500 outline-none">
         </div>
@@ -240,7 +240,6 @@
       Receita: ['💼 Salário', '🚗 Uber / Apps', '📈 Rendimentos', '🎁 Outros']
     };
 
-    // Paleta de cores vibrantes e distintas para as fatias de despesas
     const coresDespesas = [
       '#f43f5e', '#3b82f6', '#f59e0b', '#8b5cf6', 
       '#ec4899', '#06b6d4', '#14b8a6', '#f97316', '#64748b'
@@ -486,23 +485,51 @@
       });
     }
 
+    // --- DETALHAMENTO SEMANAL (SEGUNDA A DOMINGO) ---
     function abrirDetalhamentoSemanal(categoria, mesAno, tipoTransacao) {
       const modal = document.getElementById('modal-semanal');
       document.getElementById('modal-cat-nome').textContent = `${categoria} (${tipoTransacao}s)`;
       
-      const [ano, mes] = mesAno.split('-');
+      const [ano, mes] = mesAno.split('-').map(Number);
       const nomeMes = new Date(ano, mes - 1).toLocaleString('pt-BR', { month: 'long', year: 'numeric' });
       document.getElementById('modal-cat-mes').textContent = nomeMes.charAt(0).toUpperCase() + nomeMes.slice(1);
 
       const itemsCat = transacoes.filter(t => t.tipo === tipoTransacao && t.categoria === categoria && t.data.startsWith(mesAno));
-      const semanas = { 'Semana 1 (1-7)': [], 'Semana 2 (8-14)': [], 'Semana 3 (15-21)': [], 'Semana 4 (22-fim)': [] };
+      
+      // Calcular intervalos semanais reais (Segunda a Domingo)
+      const primeiroDiaMes = new Date(ano, mes - 1, 1);
+      const ultimoDiaMes = new Date(ano, mes, 0);
+      const diasNoMes = ultimoDiaMes.getDate();
 
-      itemsCat.forEach(t => {
-        const dia = parseInt(t.data.split('-')[2]);
-        if (dia <= 7) semanas['Semana 1 (1-7)'].push(t);
-        else if (dia <= 14) semanas['Semana 2 (8-14)'].push(t);
-        else if (dia <= 21) semanas['Semana 3 (15-21)'].push(t);
-        else semanas['Semana 4 (22-fim)'].push(t);
+      const intervalosSemanas = [];
+      let inicioSemana = 1;
+
+      while (inicioSemana <= diasNoMes) {
+        let dataAtual = new Date(ano, mes - 1, inicioSemana);
+        let diaSemana = dataAtual.getDay(); // 0 = Domingo, 1 = Segunda, ..., 6 = Sábado
+        
+        // Calcular até o próximo domingo
+        let diasAteDomingo = (diaSemana === 0) ? 0 : (7 - diaSemana);
+        let fimSemana = Math.min(inicioSemana + diasAteDomingo, diasNoMes);
+
+        intervalosSemanas.push({ inicio: inicioSemana, fim: fimSemana });
+        inicioSemana = fimSemana + 1;
+      }
+
+      // Agrupar itens nas semanas calculadas
+      const semanas = {};
+      intervalosSemanas.forEach((sem, index) => {
+        const padInicio = String(sem.inicio).padStart(2, '0');
+        const padFim = String(sem.fim).padStart(2, '0');
+        const rotulo = `Semana ${index + 1} (${padInicio}/${String(mes).padStart(2, '0')} a ${padFim}/${String(mes).padStart(2, '0')})`;
+        semanas[rotulo] = [];
+
+        itemsCat.forEach(t => {
+          const dia = parseInt(t.data.split('-')[2]);
+          if (dia >= sem.inicio && dia <= sem.fim) {
+            semanas[rotulo].push(t);
+          }
+        });
       });
 
       const container = document.getElementById('modal-cat-conteudo');
@@ -569,14 +596,12 @@
       const dataValues = [];
       const backgroundColors = [];
 
-      // 🟢 1. Se houver receitas no mês, exibe sempre em VERDE
       if (totalReceitas > 0) {
         labels.push('🟢 Receitas');
         dataValues.push(totalReceitas);
-        backgroundColors.push('#10b981'); // Verde
+        backgroundColors.push('#10b981');
       }
 
-      // 🎨 2. Adiciona cada categoria de despesa com uma cor diferente
       let colorIndex = 0;
       Object.entries(dadosCategorias).forEach(([cat, valor]) => {
         labels.push(cat);
@@ -585,7 +610,6 @@
         colorIndex++;
       });
 
-      // Se não houver dados no mês, coloca um valor neutro
       if (labels.length === 0) {
         labels.push('Sem dados no mês');
         dataValues.push(1);
