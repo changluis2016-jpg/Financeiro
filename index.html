@@ -29,7 +29,7 @@
           </button>
           <label title="Restaurar CSV" class="bg-blue-950/60 text-blue-400 hover:bg-blue-900/80 border border-blue-800/50 px-2.5 py-1.5 rounded-lg font-medium cursor-pointer transition">
             📤 Restaurar
-            <input type="file" id="arquivo-importar" accept=".csv" onchange="importarCSV(event)" class="hidden">
+            <input type="file" id="arquivo-importar" accept=".csv,.txt,text/csv,text/plain,*/*" onchange="importarCSV(event)" class="hidden">
           </label>
         </div>
       </div>
@@ -66,7 +66,6 @@
 
     <!-- ================= ABA 1: LANÇAMENTOS E HISTÓRICO ================= -->
     <main id="aba-lancamentos" class="space-y-4">
-      <!-- Formulário -->
       <section class="bg-slate-800 p-5 rounded-2xl shadow-lg border border-slate-700/50 space-y-4">
         <h2 class="text-sm font-bold text-slate-200">Nova Transação</h2>
         <form id="finance-form" onsubmit="adicionarTransacao(event)" class="space-y-3">
@@ -96,7 +95,6 @@
                 <button type="button" onclick="abrirModalCategoria()" class="text-[10px] text-blue-400 hover:underline">+ Nova</button>
               </div>
               <select id="categoria" class="w-full p-2.5 bg-slate-900 border border-slate-700 text-slate-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                <!-- Opções JS -->
               </select>
             </div>
             <div>
@@ -109,7 +107,6 @@
         </form>
       </section>
 
-      <!-- Lista de Histórico -->
       <section class="bg-slate-800 p-5 rounded-2xl shadow-lg border border-slate-700/50 space-y-3">
         <div class="flex justify-between items-center">
           <h2 class="text-sm font-bold text-slate-200">Histórico Recente</h2>
@@ -125,7 +122,6 @@
               </tr>
             </thead>
             <tbody id="lista-transacoes" class="divide-y divide-slate-700/50">
-              <!-- Inserido via JS -->
             </tbody>
           </table>
         </div>
@@ -143,21 +139,18 @@
           <input type="month" id="filtro-mes" onchange="atualizarDetalhamentoMes()" class="text-xs bg-slate-900 text-slate-200 font-semibold px-2 py-1 rounded-lg border border-slate-700 focus:ring-2 focus:ring-blue-500 outline-none">
         </div>
 
-        <!-- Botões de Troca Rápida de Visão (Despesa / Receita) -->
         <div class="flex gap-2 pt-1">
           <button onclick="mudarModoDetalhamento('Despesa')" id="btn-modo-despesa" class="flex-1 py-1.5 text-xs font-semibold rounded-lg bg-rose-500/20 text-rose-400 border border-rose-500/30">🔴 Despesas</button>
           <button onclick="mudarModoDetalhamento('Receita')" id="btn-modo-receita" class="flex-1 py-1.5 text-xs font-semibold rounded-lg bg-slate-900 text-slate-400 border border-slate-700">🟢 Receitas</button>
         </div>
 
         <div id="container-categorias" class="space-y-2 text-xs pt-2">
-          <!-- Inserido dinamicamente -->
         </div>
       </section>
     </main>
 
     <!-- ================= ABA 3: DASHBOARD ESTATÍSTICO ================= -->
     <main id="aba-dashboard" class="space-y-4 hidden">
-      <!-- Cards Estatísticos Avançados -->
       <section class="bg-slate-800 p-5 rounded-2xl shadow-lg border border-slate-700/50 space-y-3">
         <h2 class="text-sm font-bold text-slate-200 flex items-center gap-1.5">
           📈 Dashboard & Métricas
@@ -182,7 +175,6 @@
         </div>
       </section>
 
-      <!-- Gráfico em Tela Cheia com Cores por Categoria -->
       <section class="bg-slate-800 p-5 rounded-2xl shadow-lg border border-slate-700/50">
         <h2 class="text-sm font-bold text-slate-200 mb-3">Distribuição por Categoria</h2>
         <canvas id="graficoFinanceiro"></canvas>
@@ -202,7 +194,6 @@
         <button onclick="fecharModalSemanal()" class="text-slate-400 hover:text-slate-100 text-xl font-bold bg-slate-700/50 w-8 h-8 rounded-full flex items-center justify-center">✕</button>
       </div>
       <div id="modal-cat-conteudo" class="p-4 overflow-y-auto space-y-4 text-xs">
-        <!-- Inserido via JS -->
       </div>
     </div>
   </div>
@@ -249,7 +240,6 @@
     let modoDetalhamento = 'Despesa'; 
     let transacoes = [];
 
-    // Carregamento blindado
     if (localStorage.getItem(CHAVE_STORAGE)) {
       transacoes = JSON.parse(localStorage.getItem(CHAVE_STORAGE)) || [];
     } else if (localStorage.getItem('transacoesFinanceiras')) {
@@ -264,7 +254,6 @@
     const mesAtualDefault = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}`;
     document.getElementById('filtro-mes').value = mesAtualDefault;
 
-    // Controlar Abas
     function mudarAba(nomeAba) {
       document.getElementById('aba-lancamentos').classList.add('hidden');
       document.getElementById('aba-detalhamento').classList.add('hidden');
@@ -282,7 +271,6 @@
       }
     }
 
-    // Inicialização
     atualizarCategorias();
     atualizarInterface();
 
@@ -415,7 +403,6 @@
       document.getElementById('total-despesas').textContent = formatarMoeda(despesas);
       document.getElementById('saldo-total').textContent = formatarMoeda(receitas - despesas);
 
-      // Estatísticas gerais
       document.getElementById('estatistica-qtd').textContent = `${transacoes.length} itens`;
       const media = transacoes.length > 0 ? (receitas + despesas) / transacoes.length : 0;
       document.getElementById('estatistica-media').textContent = formatarMoeda(media);
@@ -485,7 +472,6 @@
       });
     }
 
-    // --- DETALHAMENTO SEMANAL (SEGUNDA A DOMINGO) ---
     function abrirDetalhamentoSemanal(categoria, mesAno, tipoTransacao) {
       const modal = document.getElementById('modal-semanal');
       document.getElementById('modal-cat-nome').textContent = `${categoria} (${tipoTransacao}s)`;
@@ -496,8 +482,6 @@
 
       const itemsCat = transacoes.filter(t => t.tipo === tipoTransacao && t.categoria === categoria && t.data.startsWith(mesAno));
       
-      // Calcular intervalos semanais reais (Segunda a Domingo)
-      const primeiroDiaMes = new Date(ano, mes - 1, 1);
       const ultimoDiaMes = new Date(ano, mes, 0);
       const diasNoMes = ultimoDiaMes.getDate();
 
@@ -506,9 +490,7 @@
 
       while (inicioSemana <= diasNoMes) {
         let dataAtual = new Date(ano, mes - 1, inicioSemana);
-        let diaSemana = dataAtual.getDay(); // 0 = Domingo, 1 = Segunda, ..., 6 = Sábado
-        
-        // Calcular até o próximo domingo
+        let diaSemana = dataAtual.getDay();
         let diasAteDomingo = (diaSemana === 0) ? 0 : (7 - diaSemana);
         let fimSemana = Math.min(inicioSemana + diasAteDomingo, diasNoMes);
 
@@ -516,7 +498,6 @@
         inicioSemana = fimSemana + 1;
       }
 
-      // Agrupar itens nas semanas calculadas
       const semanas = {};
       intervalosSemanas.forEach((sem, index) => {
         const padInicio = String(sem.inicio).padStart(2, '0');
@@ -572,7 +553,6 @@
       document.getElementById('modal-semanal').classList.add('hidden');
     }
 
-    // --- GRÁFICO MULTICOR POR CATEGORIA ---
     function atualizarGraficoMulticor() {
       const ctx = document.getElementById('graficoFinanceiro').getContext('2d');
       if (meuGrafico) meuGrafico.destroy();
@@ -643,7 +623,7 @@
       });
     }
 
-    // --- BACKUP E RESTAURAR CSV ---
+    // LEITOR DE CSV FLEXÍVEL E ROBUSTO
     function exportarCSV() {
       if (transacoes.length === 0) return alert('Não há dados para exportar!');
       let csv = '\uFEFFDescrição;Valor;Tipo;Categoria;Data\n';
@@ -665,15 +645,27 @@
       if (!file) return;
       const reader = new FileReader();
       reader.onload = function(e) {
-        const linhas = e.target.result.split('\n');
+        let conteudo = e.target.result;
+        // Remover UTF-8 BOM se existir
+        if (conteudo.charCodeAt(0) === 0xFEFF) {
+          conteudo = conteudo.slice(1);
+        }
+
+        const linhas = conteudo.split(/\r?\n/);
         let importados = 0;
+
         for (let i = 1; i < linhas.length; i++) {
           const linha = linhas[i].trim();
           if (!linha) continue;
-          const cols = linha.split(';').map(c => c.replace(/^"|"$/g, ''));
+
+          // Detecta se usa ; ou , como separador
+          const separador = linha.includes(';') ? ';' : ',';
+          const cols = linha.split(separador).map(c => c.trim().replace(/^"|"$/g, ''));
+
           if (cols.length >= 5) {
             const [descricao, valorStr, tipo, categoria, data] = cols;
             const valor = parseFloat(valorStr.replace(',', '.'));
+
             if (descricao && !isNaN(valor) && tipo && data) {
               transacoes.push({
                 id: Date.now() + Math.random(),
@@ -681,21 +673,22 @@
                 valor,
                 tipo,
                 categoria,
-                data
+                data: data.trim()
               });
               importados++;
             }
           }
         }
+
         if (importados > 0) {
           salvarLocal();
           alert(`${importados} lançamentos restaurados e salvos com sucesso!`);
         } else {
-          alert('Ficheiro inválido.');
+          alert('Não foi possível ler os dados. Verifique o formato do arquivo.');
         }
         event.target.value = '';
       };
-      reader.readAsText(file);
+      reader.readAsText(file, 'UTF-8');
     }
   </script>
 </body>
